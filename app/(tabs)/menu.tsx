@@ -1,9 +1,9 @@
 import { Text, View } from "react-native";
 
-export default function LiveOrdersScreen() {
+export default function MenuScreen() {
   return (
     <View className="flex-1 items-center justify-center bg-white">
-      <Text className="text-xl font-bold text-blue-500">Live Orders</Text>
+      <Text className="text-xl font-bold text-blue-500">Menu</Text>
     </View>
   );
 }
