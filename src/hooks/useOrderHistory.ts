@@ -1,31 +1,31 @@
 import { db } from "@/lib/firebase";
-import { OrderStatus } from "@/types/enum";
 import { mapOrderDoc } from "@/utils/orderHelpers";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { collection, limit, onSnapshot, orderBy, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
-export function useLiveOrders() {
+const ORDER_HISTORY_LIMIT = 100;
+
+export function useOrderHistory() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const q = query(
       collection(db, "orders"),
-      where("status", "in", [OrderStatus.New, OrderStatus.InProgress]),
+      orderBy("createdAt", "desc"),
+      limit(ORDER_HISTORY_LIMIT),
     );
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const data = snapshot.docs.map((docSnap) =>
-          mapOrderDoc(docSnap.id, docSnap.data()),
+        setOrders(
+          snapshot.docs.map((docSnap) => mapOrderDoc(docSnap.id, docSnap.data())),
         );
-        data.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-        setOrders(data);
         setLoading(false);
       },
       (error) => {
-        console.error("Live orders snapshot error:", error);
+        console.error("Order history snapshot error:", error);
         setLoading(false);
       },
     );

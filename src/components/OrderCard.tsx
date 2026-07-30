@@ -15,9 +15,13 @@ const DEFAULT_READY_MINUTES = 15;
 
 type OrderCardProps = {
   order: Order;
+  showActions?: boolean;
 };
 
-export default function OrderCard({ order }: OrderCardProps) {
+export default function OrderCard({
+  order,
+  showActions = true,
+}: OrderCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const scheduled = fulfillmentIsScheduled(order);
@@ -83,56 +87,58 @@ export default function OrderCard({ order }: OrderCardProps) {
         </View>
       </TouchableOpacity>
 
-      <View className="mt-3 pt-3 border-t border-gray-200">
-        {!scheduled && (
-          <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-sm font-semibold text-gray-700">
-              Ready In (min)
-            </Text>
-            <View className="flex-row items-center gap-3">
-              <TouchableOpacity
-                className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center"
-                disabled={readyMinutes <= READY_MINUTES_MIN}
-                onPress={() =>
-                  setReadyMinutes((prev) =>
-                    Math.max(READY_MINUTES_MIN, prev - READY_MINUTES_STEP),
-                  )
-                }
-              >
-                <Text className="text-lg font-bold text-gray-700">−</Text>
-              </TouchableOpacity>
-              <Text className="text-base font-bold text-gray-900 w-8 text-center">
-                {readyMinutes}
+      {showActions && (
+        <View className="mt-3 pt-3 border-t border-gray-200">
+          {!scheduled && (
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="text-sm font-semibold text-gray-700">
+                Ready In (min)
               </Text>
-              <TouchableOpacity
-                className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center"
-                disabled={readyMinutes >= READY_MINUTES_MAX}
-                onPress={() =>
-                  setReadyMinutes((prev) =>
-                    Math.min(READY_MINUTES_MAX, prev + READY_MINUTES_STEP),
-                  )
-                }
-              >
-                <Text className="text-lg font-bold text-gray-700">+</Text>
-              </TouchableOpacity>
+              <View className="flex-row items-center gap-3">
+                <TouchableOpacity
+                  className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center"
+                  disabled={readyMinutes <= READY_MINUTES_MIN}
+                  onPress={() =>
+                    setReadyMinutes((prev) =>
+                      Math.max(READY_MINUTES_MIN, prev - READY_MINUTES_STEP),
+                    )
+                  }
+                >
+                  <Text className="text-lg font-bold text-gray-700">−</Text>
+                </TouchableOpacity>
+                <Text className="text-base font-bold text-gray-900 w-8 text-center">
+                  {readyMinutes}
+                </Text>
+                <TouchableOpacity
+                  className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center"
+                  disabled={readyMinutes >= READY_MINUTES_MAX}
+                  onPress={() =>
+                    setReadyMinutes((prev) =>
+                      Math.min(READY_MINUTES_MAX, prev + READY_MINUTES_STEP),
+                    )
+                  }
+                >
+                  <Text className="text-lg font-bold text-gray-700">+</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        )}
+          )}
 
-        {order.status === OrderStatus.New && (
-          <TouchableOpacity className="bg-emerald-500 py-3 rounded-lg">
-            <Text className="text-center text-white font-bold">Accept</Text>
-          </TouchableOpacity>
-        )}
+          {order.status === OrderStatus.New && (
+            <TouchableOpacity className="bg-emerald-500 py-3 rounded-lg">
+              <Text className="text-center text-white font-bold">Accept</Text>
+            </TouchableOpacity>
+          )}
 
-        {order.status === OrderStatus.InProgress && (
-          <TouchableOpacity className="bg-sky-600 py-3 rounded-lg">
-            <Text className="text-center text-white font-bold">
-              Order Ready
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
+          {order.status === OrderStatus.InProgress && (
+            <TouchableOpacity className="bg-sky-600 py-3 rounded-lg">
+              <Text className="text-center text-white font-bold">
+                Order Ready
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
 
       {expanded && (
         <View className="mt-3 border-t border-gray-200 pt-2">

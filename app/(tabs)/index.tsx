@@ -3,6 +3,20 @@ import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
 import { useLiveOrders } from "@/hooks/useLiveOrders";
 import { ActivityIndicator, FlatList, Text } from "react-native";
 
+const LIST_STYLE = {
+  flex: 1,
+  minHeight: 0,
+  width: "100%" as const,
+  alignSelf: "stretch" as const,
+};
+
+const LIST_CONTENT_STYLE = {
+  flexGrow: 1,
+  alignSelf: "stretch" as const,
+  width: "100%" as const,
+  padding: 16,
+};
+
 export default function LiveOrdersScreen() {
   const { orders, loading } = useLiveOrders();
 
@@ -31,8 +45,8 @@ export default function LiveOrdersScreen() {
   return (
     <SafeAreaViewWrapper includeBottomInset={false}>
       <FlatList
-        className="flex-1"
-        contentContainerClassName="p-4"
+        style={LIST_STYLE}
+        contentContainerStyle={LIST_CONTENT_STYLE}
         data={orders}
         keyExtractor={(order) => order.id}
         renderItem={({ item }) => <OrderCard order={item} />}
