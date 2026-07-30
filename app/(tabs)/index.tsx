@@ -3,11 +3,11 @@ import OrderCard from "@/components/OrderCard";
 import PrepTimeModal from "@/components/PrepTimeModal";
 import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
 import { useLiveOrders } from "@/hooks/useLiveOrders";
+import { useStoreSettings } from "@/hooks/useStoreSettings";
 import {
   updateStoreAcceptingOrders,
   updateStoreWaitTime,
-  useStoreSettings,
-} from "@/hooks/useStoreSettings";
+} from "@/services/storeSettings";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -108,7 +108,9 @@ export default function LiveOrdersScreen() {
           contentContainerStyle={LIST_CONTENT_STYLE}
           data={orders}
           keyExtractor={(order) => order.id}
-          renderItem={({ item }) => <OrderCard order={item} />}
+          renderItem={({ item }) => (
+            <OrderCard order={item} defaultReadyMinutes={settings.waitTime} />
+          )}
         />
       )}
     </SafeAreaViewWrapper>

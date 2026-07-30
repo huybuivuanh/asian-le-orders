@@ -1,25 +1,4 @@
 import { TakeOutFulfillmentKind } from "@/types/enum";
-import { type DocumentData, Timestamp } from "firebase/firestore";
-
-function toDate(value: unknown): Date {
-  if (value instanceof Timestamp) return value.toDate();
-  return value as Date;
-}
-
-export function mapOrderDoc(id: string, data: DocumentData): Order {
-  return {
-    ...data,
-    id,
-    createdAt: toDate(data.createdAt),
-    fulfillment:
-      data.fulfillment?.kind === "scheduled"
-        ? {
-            ...data.fulfillment,
-            scheduledAt: toDate(data.fulfillment.scheduledAt),
-          }
-        : data.fulfillment,
-  } as Order;
-}
 
 export function formatOrderDate(date: Date): string {
   if (!date) return "";

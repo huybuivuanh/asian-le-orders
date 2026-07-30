@@ -1,3 +1,4 @@
+import { acceptOrder, updateOrderStatus } from "@/services/orders";
 import { OrderStatus, TakeOutFulfillmentKind } from "@/types/enum";
 import {
   formatOrderDate,
@@ -5,41 +6,53 @@ import {
   fulfillmentIsScheduled,
   fulfillmentScheduledAt,
 } from "@/utils/orderHelpers";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
-const READY_MINUTES_STEP = 5;
+const READY_MINUTES_STEP = 1;
 const READY_MINUTES_MIN = 5;
 const READY_MINUTES_MAX = 120;
-const DEFAULT_READY_MINUTES = 15;
 
 type OrderCardProps = {
   order: Order;
   showActions?: boolean;
+  defaultReadyMinutes?: number;
 };
 
 export default function OrderCard({
   order,
   showActions = true,
+  defaultReadyMinutes,
 }: OrderCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const scheduled = fulfillmentIsScheduled(order);
   const scheduledAt = fulfillmentScheduledAt(order);
 
-  const [readyMinutes, setReadyMinutes] = useState(
-    order.fulfillment?.kind === TakeOutFulfillmentKind.Immediate &&
-      order.fulfillment.readyTimeMinutes != null
+  const existingReadyTimeMinutes =
+    order.fulfillment?.kind === TakeOutFulfillmentKind.Immediate
       ? order.fulfillment.readyTimeMinutes
-      : DEFAULT_READY_MINUTES,
+      : undefined;
+
+  const [readyMinutes, setReadyMinutes] = useState(
+    existingReadyTimeMinutes ?? defaultReadyMinutes ?? 0,
   );
 
+  useEffect(() => {
+    if (existingReadyTimeMinutes != null || defaultReadyMinutes == null) return;
+    setReadyMinutes(defaultReadyMinutes);
+  }, [defaultReadyMinutes, existingReadyTimeMinutes]);
+
   const cardBg =
-    order.status === OrderStatus.New
-      ? "bg-[#ffc8dd] border-[#f4a6c6]"
-      : scheduled
-        ? "bg-orange-100 border-orange-200"
-        : "bg-blue-100 border-blue-200";
+    order.status === OrderStatus.Cancelled
+      ? "bg-red-100 border-red-200"
+      : order.status === OrderStatus.Completed
+        ? "bg-green-100 border-green-200"
+        : order.status === OrderStatus.New
+          ? "bg-[#ffc8dd] border-[#f4a6c6]"
+          : scheduled
+            ? "bg-orange-100 border-orange-200"
+            : "bg-blue-100 border-blue-200";
 
   const isPrinted = order.printed ?? false;
   const isPaid = order.paid ?? false;
@@ -70,6 +83,22 @@ export default function OrderCard({
     order.status === OrderStatus.InProgress ? "In Progress" : order.status;
 
   const showOrderActions = showActions && order.status !== OrderStatus.New;
+
+  const handleComplete = async () => {
+    try {
+      await updateOrderStatus(order.id, OrderStatus.Completed);
+    } catch (error) {
+      console.error("Failed to complete order:", error);
+    }
+  };
+
+  const handleCancel = async () => {
+    try {
+      await updateOrderStatus(order.id, OrderStatus.Cancelled);
+    } catch (error) {
+      console.error("Failed to cancel order:", error);
+    }
+  };
 
   return (
     <View className={`${cardBg} p-4 mb-3 rounded-xl shadow-sm border`}>
@@ -132,7 +161,10 @@ export default function OrderCard({
             </Text>
           </View>
           {showOrderActions && (
-            <TouchableOpacity className="bg-green-500 px-4 py-2 rounded-lg">
+            <TouchableOpacity
+              className="bg-green-500 px-4 py-2 rounded-lg"
+              onPress={handleComplete}
+            >
               <Text className="text-sm font-bold text-white">Complete</Text>
             </TouchableOpacity>
           )}
@@ -141,7 +173,7 @@ export default function OrderCard({
 
       {showActions && (
         <View className="mt-3 pt-3 border-t border-gray-200">
-          {!scheduled && (
+          {!scheduled && order.status === OrderStatus.New && (
             <View className="flex-row items-center justify-between mb-3">
               <Text className="text-sm font-semibold text-gray-700">
                 Ready In (min)
@@ -177,7 +209,16 @@ export default function OrderCard({
           )}
 
           {order.status === OrderStatus.New && (
-            <TouchableOpacity className="bg-emerald-500 py-3 rounded-lg">
+            <TouchableOpacity
+              className="bg-emerald-500 py-3 rounded-lg"
+              onPress={async () => {
+                try {
+                  await acceptOrder(order, readyMinutes);
+                } catch (error) {
+                  console.error("Failed to accept order:", error);
+                }
+              }}
+            >
               <Text className="text-center text-white font-bold">Accept</Text>
             </TouchableOpacity>
           )}
@@ -280,12 +321,18 @@ export default function OrderCard({
                   Print
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity className="flex-1 bg-red-500 py-3 rounded-md">
+              <TouchableOpacity
+                className="flex-1 bg-red-500 py-3 rounded-md"
+                onPress={handleCancel}
+              >
                 <Text className="text-center text-white font-semibold text-sm">
                   Cancel
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity className="flex-1 bg-green-500 py-3 rounded-md">
+              <TouchableOpacity
+                className="flex-1 bg-green-500 py-3 rounded-md"
+                onPress={handleComplete}
+              >
                 <Text className="text-center text-white font-semibold text-sm">
                   Complete
                 </Text>

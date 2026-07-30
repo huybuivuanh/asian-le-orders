@@ -1,7 +1,4 @@
-import { db } from "@/lib/firebase";
-import { OrderStatus } from "@/types/enum";
-import { mapOrderDoc } from "@/utils/orderHelpers";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { subscribeToLiveOrders } from "@/services/orders";
 import { useEffect, useState } from "react";
 
 export function useLiveOrders() {
@@ -9,18 +6,8 @@ export function useLiveOrders() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(
-      collection(db, "orders"),
-      where("status", "in", [OrderStatus.New, OrderStatus.InProgress]),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const data = snapshot.docs.map((docSnap) =>
-          mapOrderDoc(docSnap.id, docSnap.data()),
-        );
-        data.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    const unsubscribe = subscribeToLiveOrders(
+      (data) => {
         setOrders(data);
         setLoading(false);
       },
