@@ -41,8 +41,35 @@ export default function OrderCard({
         ? "bg-orange-100 border-orange-200"
         : "bg-blue-100 border-blue-200";
 
-  const statusBg =
-    order.status === OrderStatus.New ? "bg-pink-500" : "bg-blue-500";
+  const isPrinted = order.printed ?? false;
+  const isPaid = order.paid ?? false;
+
+  const hidePaidBadge =
+    order.status === OrderStatus.Cancelled ||
+    (order.status === OrderStatus.Completed && !isPaid);
+
+  const statusPillClass =
+    order.status === OrderStatus.New
+      ? "bg-pink-100"
+      : order.status === OrderStatus.InProgress
+        ? "bg-blue-100"
+        : order.status === OrderStatus.Completed
+          ? "bg-green-100"
+          : "bg-red-200";
+
+  const statusTextClass =
+    order.status === OrderStatus.New
+      ? "text-pink-700"
+      : order.status === OrderStatus.InProgress
+        ? "text-blue-700"
+        : order.status === OrderStatus.Completed
+          ? "text-green-700"
+          : "text-red-700";
+
+  const statusLabel =
+    order.status === OrderStatus.InProgress ? "In Progress" : order.status;
+
+  const showOrderActions = showActions && order.status !== OrderStatus.New;
 
   return (
     <View className={`${cardBg} p-4 mb-3 rounded-xl shadow-sm border`}>
@@ -80,10 +107,35 @@ export default function OrderCard({
           )}
         </View>
 
-        <View className={`px-3 py-1 rounded-full ${statusBg}`}>
-          <Text className="text-xs font-semibold text-white">
-            {order.status}
-          </Text>
+        <View className="items-end gap-2">
+          <View
+            className={`px-3 py-1 rounded-full ${isPrinted ? "bg-green-100" : "bg-yellow-100"}`}
+          >
+            <Text
+              className={`text-xs font-semibold ${isPrinted ? "text-green-700" : "text-yellow-700"}`}
+            >
+              {isPrinted ? "Printed" : "Not Printed"}
+            </Text>
+          </View>
+          <View
+            className={`px-3 py-1 rounded-full ${isPaid ? "bg-green-100" : "bg-gray-100"} ${hidePaidBadge ? "opacity-0" : ""}`}
+          >
+            <Text
+              className={`text-xs font-semibold ${isPaid ? "text-green-700" : "text-gray-700"}`}
+            >
+              {isPaid ? "Paid" : "Unpaid"}
+            </Text>
+          </View>
+          <View className={`px-3 py-1 rounded-full ${statusPillClass}`}>
+            <Text className={`text-xs font-semibold ${statusTextClass}`}>
+              {statusLabel}
+            </Text>
+          </View>
+          {showOrderActions && (
+            <TouchableOpacity className="bg-green-500 px-4 py-2 rounded-lg">
+              <Text className="text-sm font-bold text-white">Complete</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </TouchableOpacity>
 
@@ -220,6 +272,34 @@ export default function OrderCard({
               </Text>
             </View>
           </View>
+
+          {showOrderActions && (
+            <View className="flex-row justify-between gap-2 mt-3">
+              <TouchableOpacity className="flex-1 bg-blue-500 py-3 rounded-md">
+                <Text className="text-center text-white font-semibold text-sm">
+                  Print
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity className="flex-1 bg-red-500 py-3 rounded-md">
+                <Text className="text-center text-white font-semibold text-sm">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity className="flex-1 bg-green-500 py-3 rounded-md">
+                <Text className="text-center text-white font-semibold text-sm">
+                  Complete
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {!showActions && (
+            <TouchableOpacity className="bg-blue-500 py-3 rounded-md mt-3">
+              <Text className="text-center text-white font-semibold text-sm">
+                Print
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </View>

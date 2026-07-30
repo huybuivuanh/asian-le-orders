@@ -187,6 +187,8 @@ declare global {
     orderItems: OrderItem[];
     taxBreakDown: OrderTaxBreakDown;
     createdAt: Date;
+    printed?: boolean;
+    paid?: boolean;
   }
 }
 
