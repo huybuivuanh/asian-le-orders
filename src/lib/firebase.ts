@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { type FirebaseApp, getApps, initializeApp } from "firebase/app";
 import { type Auth, getAuth, initializeAuth } from "firebase/auth";
+import { type Firestore, getFirestore } from "firebase/firestore";
 import { Platform } from "react-native";
 
 // firebase's package.json lists the "types" export condition before
@@ -30,5 +31,7 @@ export const auth: Auth =
     : initializeAuth(app, {
         persistence: getReactNativePersistence(AsyncStorage),
       });
+
+export const db: Firestore = getFirestore(app);
 
 export default app;
