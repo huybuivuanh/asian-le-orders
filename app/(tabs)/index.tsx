@@ -1,33 +1,42 @@
 import OrderCard from "@/components/OrderCard";
+import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
 import { useLiveOrders } from "@/hooks/useLiveOrders";
-import { ActivityIndicator, FlatList, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, Text } from "react-native";
 
 export default function LiveOrdersScreen() {
   const { orders, loading } = useLiveOrders();
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <SafeAreaViewWrapper
+        className="items-center justify-center"
+        includeBottomInset={false}
+      >
         <ActivityIndicator />
-      </View>
+      </SafeAreaViewWrapper>
     );
   }
 
   if (orders.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <SafeAreaViewWrapper
+        className="items-center justify-center"
+        includeBottomInset={false}
+      >
         <Text className="text-base text-gray-500">No live orders</Text>
-      </View>
+      </SafeAreaViewWrapper>
     );
   }
 
   return (
-    <FlatList
-      className="flex-1 bg-white"
-      contentContainerClassName="p-4"
-      data={orders}
-      keyExtractor={(order) => order.id}
-      renderItem={({ item }) => <OrderCard order={item} />}
-    />
+    <SafeAreaViewWrapper includeBottomInset={false}>
+      <FlatList
+        className="flex-1"
+        contentContainerClassName="p-4"
+        data={orders}
+        keyExtractor={(order) => order.id}
+        renderItem={({ item }) => <OrderCard order={item} />}
+      />
+    </SafeAreaViewWrapper>
   );
 }

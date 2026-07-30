@@ -1,6 +1,11 @@
 import { Stack } from "expo-router";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator } from "react-native";
+import {
+  initialWindowMetrics,
+  SafeAreaProvider,
+} from "react-native-safe-area-context";
 
+import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 
 import "../global.css";
@@ -10,9 +15,9 @@ function RootNavigator() {
 
   if (initializing) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <SafeAreaViewWrapper className="items-center justify-center">
         <ActivityIndicator />
-      </View>
+      </SafeAreaViewWrapper>
     );
   }
 
@@ -30,8 +35,10 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <RootNavigator />
-    </AuthProvider>
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+      <AuthProvider>
+        <RootNavigator />
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

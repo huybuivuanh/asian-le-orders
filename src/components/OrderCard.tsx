@@ -8,6 +8,11 @@ import {
 import { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
+const READY_MINUTES_STEP = 5;
+const READY_MINUTES_MIN = 5;
+const READY_MINUTES_MAX = 120;
+const DEFAULT_READY_MINUTES = 15;
+
 type OrderCardProps = {
   order: Order;
 };
@@ -18,14 +23,22 @@ export default function OrderCard({ order }: OrderCardProps) {
   const scheduled = fulfillmentIsScheduled(order);
   const scheduledAt = fulfillmentScheduledAt(order);
 
-  const cardBg = scheduled
-    ? "bg-orange-100 border-orange-200"
-    : order.status === OrderStatus.New
-      ? "bg-amber-100 border-amber-200"
-      : "bg-blue-100 border-blue-200";
+  const [readyMinutes, setReadyMinutes] = useState(
+    order.fulfillment?.kind === TakeOutFulfillmentKind.Immediate &&
+      order.fulfillment.readyTimeMinutes != null
+      ? order.fulfillment.readyTimeMinutes
+      : DEFAULT_READY_MINUTES,
+  );
+
+  const cardBg =
+    order.status === OrderStatus.New
+      ? "bg-[#ffc8dd] border-[#f4a6c6]"
+      : scheduled
+        ? "bg-orange-100 border-orange-200"
+        : "bg-blue-100 border-blue-200";
 
   const statusBg =
-    order.status === OrderStatus.New ? "bg-amber-500" : "bg-blue-500";
+    order.status === OrderStatus.New ? "bg-pink-500" : "bg-blue-500";
 
   return (
     <View className={`${cardBg} p-4 mb-3 rounded-xl shadow-sm border`}>
@@ -69,6 +82,57 @@ export default function OrderCard({ order }: OrderCardProps) {
           </Text>
         </View>
       </TouchableOpacity>
+
+      <View className="mt-3 pt-3 border-t border-gray-200">
+        {!scheduled && (
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-sm font-semibold text-gray-700">
+              Ready In (min)
+            </Text>
+            <View className="flex-row items-center gap-3">
+              <TouchableOpacity
+                className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center"
+                disabled={readyMinutes <= READY_MINUTES_MIN}
+                onPress={() =>
+                  setReadyMinutes((prev) =>
+                    Math.max(READY_MINUTES_MIN, prev - READY_MINUTES_STEP),
+                  )
+                }
+              >
+                <Text className="text-lg font-bold text-gray-700">−</Text>
+              </TouchableOpacity>
+              <Text className="text-base font-bold text-gray-900 w-8 text-center">
+                {readyMinutes}
+              </Text>
+              <TouchableOpacity
+                className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center"
+                disabled={readyMinutes >= READY_MINUTES_MAX}
+                onPress={() =>
+                  setReadyMinutes((prev) =>
+                    Math.min(READY_MINUTES_MAX, prev + READY_MINUTES_STEP),
+                  )
+                }
+              >
+                <Text className="text-lg font-bold text-gray-700">+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {order.status === OrderStatus.New && (
+          <TouchableOpacity className="bg-emerald-500 py-3 rounded-lg">
+            <Text className="text-center text-white font-bold">Accept</Text>
+          </TouchableOpacity>
+        )}
+
+        {order.status === OrderStatus.InProgress && (
+          <TouchableOpacity className="bg-sky-600 py-3 rounded-lg">
+            <Text className="text-center text-white font-bold">
+              Order Ready
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {expanded && (
         <View className="mt-3 border-t border-gray-200 pt-2">

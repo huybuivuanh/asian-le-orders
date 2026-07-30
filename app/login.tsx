@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 
+import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
 import { useAuth } from "@/contexts/AuthContext";
 
 function getErrorMessage(error: unknown): string {
@@ -53,71 +54,73 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      className="flex-1 bg-white"
-    >
-      <View className="flex-1 justify-center px-6">
-        <Text className="mb-1 text-3xl font-bold text-gray-900">
-          Welcome back
-        </Text>
-        <Text className="mb-8 text-base text-gray-500">
-          Sign in to continue
-        </Text>
-
-        <View className="mb-4">
-          <Text className="mb-1.5 text-sm font-medium text-gray-700">
-            Email
+    <SafeAreaViewWrapper className="bg-white">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        className="flex-1"
+      >
+        <View className="flex-1 justify-center px-6">
+          <Text className="mb-1 text-3xl font-bold text-gray-900">
+            Welcome back
           </Text>
-          <TextInput
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="email-address"
-            textContentType="emailAddress"
-            placeholder="you@example.com"
-            placeholderTextColor="#9CA3AF"
-            className="rounded-lg border border-gray-300 px-4 py-3 text-base text-gray-900"
-          />
-        </View>
-
-        <View className="mb-2">
-          <Text className="mb-1.5 text-sm font-medium text-gray-700">
-            Password
+          <Text className="mb-8 text-base text-gray-500">
+            Sign in to continue
           </Text>
-          <TextInput
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            textContentType="password"
-            placeholder="••••••••"
-            placeholderTextColor="#9CA3AF"
-            className="rounded-lg border border-gray-300 px-4 py-3 text-base text-gray-900"
-            onSubmitEditing={handleSubmit}
-          />
-        </View>
 
-        {error ? (
-          <Text className="mb-2 text-sm text-red-600">{error}</Text>
-        ) : null}
-
-        <Pressable
-          onPress={handleSubmit}
-          disabled={!canSubmit}
-          className={`mt-4 items-center rounded-lg py-3 ${
-            canSubmit ? "bg-blue-500" : "bg-blue-300"
-          }`}
-        >
-          {submitting ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text className="text-base font-semibold text-white">
-              Log in
+          <View className="mb-4">
+            <Text className="mb-1.5 text-sm font-medium text-gray-700">
+              Email
             </Text>
-          )}
-        </Pressable>
-      </View>
-    </KeyboardAvoidingView>
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              textContentType="emailAddress"
+              placeholder="you@example.com"
+              placeholderTextColor="#9CA3AF"
+              className="rounded-lg border border-gray-300 px-4 py-3 text-base text-gray-900"
+            />
+          </View>
+
+          <View className="mb-2">
+            <Text className="mb-1.5 text-sm font-medium text-gray-700">
+              Password
+            </Text>
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              textContentType="password"
+              placeholder="••••••••"
+              placeholderTextColor="#9CA3AF"
+              className="rounded-lg border border-gray-300 px-4 py-3 text-base text-gray-900"
+              onSubmitEditing={handleSubmit}
+            />
+          </View>
+
+          {error ? (
+            <Text className="mb-2 text-sm text-red-600">{error}</Text>
+          ) : null}
+
+          <Pressable
+            onPress={handleSubmit}
+            disabled={!canSubmit}
+            className={`mt-4 items-center rounded-lg py-3 ${
+              canSubmit ? "bg-blue-500" : "bg-blue-300"
+            }`}
+          >
+            {submitting ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-base font-semibold text-white">
+                Log in
+              </Text>
+            )}
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaViewWrapper>
   );
 }

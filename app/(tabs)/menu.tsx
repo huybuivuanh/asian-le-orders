@@ -1,9 +1,13 @@
-import { Text, View } from "react-native";
+import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
+import { Text } from "react-native";
 
 export default function MenuScreen() {
   return (
-    <View className="flex-1 items-center justify-center bg-white">
+    <SafeAreaViewWrapper
+      className="items-center justify-center"
+      includeBottomInset={false}
+    >
       <Text className="text-xl font-bold text-blue-500">Menu</Text>
-    </View>
+    </SafeAreaViewWrapper>
   );
 }
