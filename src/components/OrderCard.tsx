@@ -1,4 +1,5 @@
 import { acceptOrder, updateOrderStatus } from "@/services/orders";
+import { submitOrderToPrintQueue } from "@/services/printQueue";
 import { OrderStatus, TakeOutFulfillmentKind } from "@/types/enum";
 import {
   formatOrderDate,
@@ -97,6 +98,14 @@ export default function OrderCard({
       await updateOrderStatus(order.id, OrderStatus.Cancelled);
     } catch (error) {
       console.error("Failed to cancel order:", error);
+    }
+  };
+
+  const handlePrint = async () => {
+    try {
+      await submitOrderToPrintQueue(order);
+    } catch (error) {
+      console.error("Failed to print order:", error);
     }
   };
 
@@ -316,7 +325,10 @@ export default function OrderCard({
 
           {showOrderActions && (
             <View className="flex-row justify-between gap-2 mt-3">
-              <TouchableOpacity className="flex-1 bg-blue-500 py-3 rounded-md">
+              <TouchableOpacity
+                className="flex-1 bg-blue-500 py-3 rounded-md"
+                onPress={handlePrint}
+              >
                 <Text className="text-center text-white font-semibold text-sm">
                   Print
                 </Text>
@@ -341,7 +353,10 @@ export default function OrderCard({
           )}
 
           {!showActions && (
-            <TouchableOpacity className="bg-blue-500 py-3 rounded-md mt-3">
+            <TouchableOpacity
+              className="bg-blue-500 py-3 rounded-md mt-3"
+              onPress={handlePrint}
+            >
               <Text className="text-center text-white font-semibold text-sm">
                 Print
               </Text>
