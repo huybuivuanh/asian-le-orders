@@ -126,7 +126,10 @@ declare global {
   }
 
   interface StoreSettings {
-    pauseOrdering: boolean;
+    // null = accepting orders. A date = paused until that moment; a
+    // far-future sentinel (see INDEFINITE_PAUSE in storeSettingsHelpers)
+    // represents "paused indefinitely, until manually resumed."
+    pausedUntil: Date | null;
     timezone: string;
     waitTime: number;
     hours: {

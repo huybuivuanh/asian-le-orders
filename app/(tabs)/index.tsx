@@ -1,13 +1,14 @@
-import ConfirmModal from "@/components/ConfirmModal";
 import OrderCard from "@/components/OrderCard";
+import PauseOrderingModal from "@/components/PauseOrderingModal";
 import PrepTimeModal from "@/components/PrepTimeModal";
 import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
 import { useLiveOrders } from "@/hooks/useLiveOrders";
 import { useStoreSettings } from "@/hooks/useStoreSettings";
 import {
-  updateStoreAcceptingOrders,
+  updateStorePausedUntil,
   updateStoreWaitTime,
 } from "@/services/storeSettings";
+import { formatPausedUntil, isStorePaused } from "@/utils/storeSettingsHelpers";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -34,15 +35,15 @@ const LIST_CONTENT_STYLE = {
 export default function LiveOrdersScreen() {
   const { orders, loading } = useLiveOrders();
   const { settings } = useStoreSettings();
-  const isAccepting = !settings.pauseOrdering;
+  const isPaused = isStorePaused(settings);
 
-  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [pauseModalVisible, setPauseModalVisible] = useState(false);
   const [prepTimeVisible, setPrepTimeVisible] = useState(false);
 
-  const handleConfirmSwitch = async () => {
-    setConfirmVisible(false);
+  const handleSelectPause = async (pausedUntil: Date | null) => {
+    setPauseModalVisible(false);
     try {
-      await updateStoreAcceptingOrders(!settings.pauseOrdering);
+      await updateStorePausedUntil(pausedUntil);
     } catch (error) {
       console.error("Failed to update store status:", error);
     }
@@ -61,12 +62,14 @@ export default function LiveOrdersScreen() {
     <SafeAreaViewWrapper includeBottomInset={false}>
       <View className="flex-row gap-2 px-4 pt-4">
         <TouchableOpacity
-          className={`flex-row items-center gap-1.5 px-4 py-2 rounded-full ${isAccepting ? "bg-emerald-500" : "bg-gray-400"}`}
-          onPress={() => setConfirmVisible(true)}
+          className={`flex-row items-center gap-1.5 px-4 py-2 rounded-full ${isPaused ? "bg-gray-400" : "bg-emerald-500"}`}
+          onPress={() => setPauseModalVisible(true)}
         >
           <Text className="text-white text-xs">●</Text>
           <Text className="text-white font-semibold text-sm">
-            {isAccepting ? "Accepting" : "Paused"}
+            {isPaused && settings.pausedUntil
+              ? `Paused ${formatPausedUntil(settings.pausedUntil)}`
+              : "Accepting"}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -80,11 +83,11 @@ export default function LiveOrdersScreen() {
         </TouchableOpacity>
       </View>
 
-      <ConfirmModal
-        visible={confirmVisible}
-        message={`Switch status to ${isAccepting ? "Paused" : "Accepting"}?`}
-        onConfirm={handleConfirmSwitch}
-        onCancel={() => setConfirmVisible(false)}
+      <PauseOrderingModal
+        visible={pauseModalVisible}
+        isPaused={isPaused}
+        onSubmit={handleSelectPause}
+        onCancel={() => setPauseModalVisible(false)}
       />
 
       <PrepTimeModal

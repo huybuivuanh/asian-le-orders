@@ -1,5 +1,8 @@
 import { db } from "@/lib/firebase";
+import { INDEFINITE_PAUSE } from "@/utils/storeSettingsHelpers";
 import {
+  Timestamp,
+  type DocumentData,
   type FirestoreError,
   type Unsubscribe,
   doc,
@@ -16,7 +19,7 @@ const DEFAULT_DAY_HOURS: DayHours = {
 };
 
 export const DEFAULT_STORE_SETTINGS: StoreSettings = {
-  pauseOrdering: true,
+  pausedUntil: INDEFINITE_PAUSE,
   timezone: "America/Regina",
   waitTime: 0,
   hours: {
@@ -31,6 +34,15 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
   holidays: [],
 };
 
+function mapStoreSettingsDoc(data: DocumentData): StoreSettings {
+  const pausedUntil = data.pausedUntil;
+  return {
+    ...data,
+    pausedUntil:
+      pausedUntil instanceof Timestamp ? pausedUntil.toDate() : pausedUntil ?? null,
+  } as StoreSettings;
+}
+
 export function subscribeToStoreSettings(
   onData: (settings: StoreSettings) => void,
   onError: (error: FirestoreError) => void,
@@ -40,7 +52,7 @@ export function subscribeToStoreSettings(
     (snapshot) => {
       onData(
         snapshot.exists()
-          ? (snapshot.data() as StoreSettings)
+          ? mapStoreSettingsDoc(snapshot.data())
           : DEFAULT_STORE_SETTINGS,
       );
     },
@@ -48,8 +60,12 @@ export function subscribeToStoreSettings(
   );
 }
 
-export async function updateStoreAcceptingOrders(pauseOrdering: boolean) {
-  await setDoc(STORE_SETTINGS_DOC, { pauseOrdering }, { merge: true });
+export async function updateStorePausedUntil(pausedUntil: Date | null) {
+  await setDoc(
+    STORE_SETTINGS_DOC,
+    { pausedUntil: pausedUntil ? Timestamp.fromDate(pausedUntil) : null },
+    { merge: true },
+  );
 }
 
 export async function updateStoreWaitTime(waitTime: number) {
