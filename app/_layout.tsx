@@ -1,10 +1,11 @@
 import { Stack } from "expo-router";
-import { ActivityIndicator } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import {
   initialWindowMetrics,
   SafeAreaProvider,
 } from "react-native-safe-area-context";
 
+import NewOrderAlertOverlay from "@/components/NewOrderAlertOverlay";
 import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 
@@ -22,15 +23,18 @@ function RootNavigator() {
   }
 
   return (
-    <Stack>
-      <Stack.Protected guard={!!user}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="menu-item/[id]" />
-      </Stack.Protected>
-      <Stack.Protected guard={!user}>
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-      </Stack.Protected>
-    </Stack>
+    <View style={{ flex: 1 }}>
+      <Stack>
+        <Stack.Protected guard={!!user}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="menu-item/[id]" />
+        </Stack.Protected>
+        <Stack.Protected guard={!user}>
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+        </Stack.Protected>
+      </Stack>
+      {user && <NewOrderAlertOverlay />}
+    </View>
   );
 }
 

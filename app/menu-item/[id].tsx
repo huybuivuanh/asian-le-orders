@@ -73,7 +73,11 @@ export default function MenuItemDetailScreen() {
   };
 
   return (
-    <SafeAreaViewWrapper backgroundColor="#F3F4F6" includeBottomInset={false}>
+    <SafeAreaViewWrapper
+      backgroundColor="#F3F4F6"
+      includeTopInset={false}
+      includeBottomInset={false}
+    >
       <Stack.Screen
         options={{
           title: item?.name ?? "Item",

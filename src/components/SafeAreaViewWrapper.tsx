@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 interface Props extends ViewProps {
   children: ReactNode;
   backgroundColor?: string;
+  includeTopInset?: boolean;
   includeBottomInset?: boolean;
 }
 
@@ -12,6 +13,7 @@ export default function SafeAreaViewWrapper({
   children,
   style,
   backgroundColor = "white",
+  includeTopInset = true,
   includeBottomInset = true,
   ...props
 }: Props) {
@@ -31,7 +33,7 @@ export default function SafeAreaViewWrapper({
       style={[
         {
           flex: 1,
-          paddingTop: insets.top,
+          paddingTop: includeTopInset ? insets.top : 0,
           paddingBottom: includeBottomInset ? insets.bottom : 0,
           backgroundColor,
           ...webLayout,
