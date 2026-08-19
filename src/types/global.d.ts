@@ -64,15 +64,18 @@ declare global {
     order: number;
   }
 
-  interface MenuItemAvailability {
-    start: string;
-    end: string;
-  }
-
-  interface MenuItemSoldOut {
-    since: Date;
-    hours?: number;
-    indefinite: boolean;
+  // Undefined = available every day, all hours. Present with day keys =
+  // available ONLY on those days, ONLY inside that day's range. Present but
+  // `{}` = unavailable every day — a distinct state from undefined, reachable
+  // via the admin "restrict" toggle with no days set. Never merge with `??`.
+  interface Availability {
+    mon?: TimeRange;
+    tue?: TimeRange;
+    wed?: TimeRange;
+    thu?: TimeRange;
+    fri?: TimeRange;
+    sat?: TimeRange;
+    sun?: TimeRange;
   }
 
   type DemoCategory = FoodCategory;
@@ -86,8 +89,13 @@ declare global {
     optionGroupIds?: OptionGroupId[];
     categoryIds?: string[];
     kitchenType: KitchenType;
-    availability?: MenuItemAvailability;
-    soldOut?: MenuItemSoldOut;
+    availability?: Availability;
+    // Absent = available. A date = sold out until that moment; the
+    // INDEFINITE_PAUSE sentinel (see storeSettingsHelpers) = sold out until
+    // manually restocked. Same convention as StoreSettings.pausedUntil,
+    // except optional/absent here instead of null since this is a sparse
+    // per-item field rather than a singleton settings doc.
+    soldOutUntil?: Date;
     createdAt: Date;
   }
 
@@ -108,8 +116,8 @@ declare global {
     name: string;
     price: number;
     groupIds?: string[];
-    availability?: MenuItemAvailability;
-    soldOut?: MenuItemSoldOut;
+    availability?: Availability;
+    soldOutUntil?: Date;
     createdAt: Date;
   }
 
@@ -142,11 +150,6 @@ declare global {
       sun: DayHours;
     };
     holidays: Holiday[];
-  }
-
-  interface MenuVersion {
-    version: number;
-    lastUpdated: Date | null;
   }
 
   // --- Orders (written by the customer-facing website, read here for order
@@ -189,9 +192,9 @@ declare global {
     customerEmail: string;
     orderItems: OrderItem[];
     taxBreakDown: OrderTaxBreakDown;
+    paid: boolean;
+    printed: boolean;
     createdAt: Date;
-    printed?: boolean;
-    paid?: boolean;
   }
 }
 

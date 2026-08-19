@@ -55,8 +55,8 @@ export default function OrderCard({
             ? "bg-orange-100 border-orange-200"
             : "bg-blue-100 border-blue-200";
 
-  const isPrinted = order.printed ?? false;
-  const isPaid = order.paid ?? false;
+  const isPrinted = order.printed;
+  const isPaid = order.paid;
 
   const hidePaidBadge =
     order.status === OrderStatus.Cancelled ||
