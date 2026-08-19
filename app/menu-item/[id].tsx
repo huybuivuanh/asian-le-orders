@@ -10,9 +10,16 @@ import {
 } from "@/services/menuData";
 import { buildMenuItemViewModel, selectionRuleLabel } from "@/utils/menuViewModel";
 import { formatPausedUntil } from "@/utils/storeSettingsHelpers";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 type SoldOutTarget =
   | { kind: "item" }
@@ -83,6 +90,15 @@ export default function MenuItemDetailScreen() {
           title: item?.name ?? "Item",
           headerTitleAlign: "center",
           headerBackButtonDisplayMode: "minimal",
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => router.back()}
+              hitSlop={12}
+              className="pr-2"
+            >
+              <Ionicons name="chevron-back" size={24} color="#007AFF" />
+            </TouchableOpacity>
+          ),
         }}
       />
 
