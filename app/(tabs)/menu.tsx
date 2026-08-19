@@ -3,7 +3,10 @@ import { useDemoCategories } from "@/hooks/useDemoCategories";
 import { useDemoMenuItems } from "@/hooks/useDemoMenuItems";
 import { useItemOptions } from "@/hooks/useItemOptions";
 import { useOptionGroups } from "@/hooks/useOptionGroups";
-import { buildMenuItemViewModel } from "@/utils/menuViewModel";
+import {
+  buildMenuItemViewModel,
+  type MenuItemViewModel,
+} from "@/utils/menuViewModel";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -26,6 +29,7 @@ export default function MenuScreen() {
   const { optionGroups, loading: optionGroupsLoading } = useOptionGroups();
   const { options, loading: optionsLoading } = useItemOptions();
   const [search, setSearch] = useState("");
+  const [showDisabledOnly, setShowDisabledOnly] = useState(false);
 
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -41,16 +45,35 @@ export default function MenuScreen() {
     const optionsById = new Map(options.map((o) => [o.id, o]));
     const term = search.trim().toLowerCase();
 
-    const filteredItems = term
-      ? items.filter((item) => item.name.toLowerCase().includes(term))
-      : items;
-
     const viewModelsByItemId = new Map(
-      filteredItems.map((item) => [
+      items.map((item) => [
         item.id,
         buildMenuItemViewModel(item, optionGroupsById, optionsById, now),
       ]),
     );
+
+    const matchesSearch = (vm: MenuItemViewModel) => {
+      if (!term) return true;
+      if (vm.item.name.toLowerCase().includes(term)) return true;
+      return vm.optionGroups.some((group) =>
+        group.options.some((o) => o.option.name.toLowerCase().includes(term)),
+      );
+    };
+
+    const hasDisabledOption = (vm: MenuItemViewModel) =>
+      vm.optionGroups.some((group) =>
+        group.options.some((o) => o.availability.state === "sold-out"),
+      );
+
+    const matchesDisabledFilter = (vm: MenuItemViewModel) =>
+      !showDisabledOnly ||
+      vm.availability.state === "sold-out" ||
+      hasDisabledOption(vm);
+
+    const filteredItems = items.filter((item) => {
+      const vm = viewModelsByItemId.get(item.id);
+      return vm != null && matchesSearch(vm) && matchesDisabledFilter(vm);
+    });
 
     const orderedCategories = [
       ...categories,
@@ -74,7 +97,7 @@ export default function MenuScreen() {
           .filter((vm): vm is NonNullable<typeof vm> => vm != null),
       }))
       .filter((section) => section.data.length > 0);
-  }, [categories, items, optionGroups, options, search, now]);
+  }, [categories, items, optionGroups, options, search, showDisabledOnly, now]);
 
   return (
     <SafeAreaViewWrapper backgroundColor="#F3F4F6" includeBottomInset={false}>
@@ -82,11 +105,11 @@ export default function MenuScreen() {
         <Text className="text-2xl font-bold text-gray-900">Menu</Text>
       </View>
 
-      <View className="px-4 pb-3">
-        <View className="flex-row items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5">
+      <View className="flex-row items-center gap-2 px-4 pb-3">
+        <View className="flex-1 flex-row items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5">
           <Ionicons name="search" size={18} color="#9ca3af" />
           <TextInput
-            className="flex-1 text-base text-gray-900"
+            className="flex-1 text-base text-gray-900 focus:outline-none"
             placeholder="Search items"
             placeholderTextColor="#9ca3af"
             value={search}
@@ -99,6 +122,27 @@ export default function MenuScreen() {
             </TouchableOpacity>
           )}
         </View>
+        <TouchableOpacity
+          className={`flex-row items-center gap-1.5 rounded-xl border px-3 py-2.5 ${
+            showDisabledOnly
+              ? "border-red-500 bg-red-500"
+              : "border-gray-200 bg-white"
+          }`}
+          onPress={() => setShowDisabledOnly((prev) => !prev)}
+        >
+          <Ionicons
+            name="funnel"
+            size={16}
+            color={showDisabledOnly ? "#ffffff" : "#6b7280"}
+          />
+          <Text
+            className={`text-sm font-semibold ${
+              showDisabledOnly ? "text-white" : "text-gray-500"
+            }`}
+          >
+            Disabled Items
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {loading ? (
@@ -107,7 +151,9 @@ export default function MenuScreen() {
         </View>
       ) : sections.length === 0 ? (
         <View className="flex-1 items-center justify-center">
-          <Text className="text-base text-gray-500">No menu items</Text>
+          <Text className="text-base text-gray-500">
+            {showDisabledOnly ? "No disabled items" : "No matching items"}
+          </Text>
         </View>
       ) : (
         <SectionList
@@ -125,6 +171,13 @@ export default function MenuScreen() {
           renderItem={({ item: vm, index, section }) => {
             const isLast = index === section.data.length - 1;
             const isSoldOut = vm.availability.state === "sold-out";
+            const disabledOptionCount = vm.optionGroups.reduce(
+              (sum, group) =>
+                sum +
+                group.options.filter((o) => o.availability.state === "sold-out")
+                  .length,
+              0,
+            );
             return (
               <View
                 className={`bg-white px-4 ${isLast ? "rounded-b-2xl" : "border-b border-gray-100"}`}
@@ -142,12 +195,21 @@ export default function MenuScreen() {
                     {isSoldOut && (
                       <View className="h-1.5 w-1.5 rounded-full bg-red-500" />
                     )}
-                    <Text
-                      className="flex-1 text-base text-gray-900"
-                      numberOfLines={1}
-                    >
-                      {vm.item.name}
-                    </Text>
+                    <View className="flex-1">
+                      <Text
+                        className={`text-base ${isSoldOut ? "text-gray-400 line-through" : "text-gray-900"}`}
+                        numberOfLines={1}
+                      >
+                        {vm.item.name}
+                      </Text>
+                      {!isSoldOut && disabledOptionCount > 0 && (
+                        <Text className="text-xs text-red-500 mt-0.5">
+                          {disabledOptionCount}{" "}
+                          {disabledOptionCount === 1 ? "option" : "options"} sold
+                          out
+                        </Text>
+                      )}
+                    </View>
                   </View>
                   <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
                 </TouchableOpacity>

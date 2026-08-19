@@ -18,7 +18,7 @@ export default function SoldOutToggleRow({
       activeOpacity={0.6}
     >
       <Text
-        className="flex-1 mr-3 text-base text-gray-900"
+        className={`flex-1 mr-3 text-base ${isSoldOut ? "text-gray-400 line-through" : "text-gray-900"}`}
         numberOfLines={2}
       >
         {label}
