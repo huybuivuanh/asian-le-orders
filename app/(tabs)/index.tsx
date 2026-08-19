@@ -85,7 +85,7 @@ export default function LiveOrdersScreen() {
 
       <PauseOrderingModal
         visible={pauseModalVisible}
-        isPaused={isPaused}
+        isActive={isPaused}
         onSubmit={handleSelectPause}
         onCancel={() => setPauseModalVisible(false)}
       />

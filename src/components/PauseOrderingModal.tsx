@@ -34,16 +34,26 @@ function defaultCustomDate(): Date {
 
 type PauseOrderingModalProps = {
   visible: boolean;
-  isPaused: boolean;
-  onSubmit: (pausedUntil: Date | null) => void;
+  isActive: boolean;
+  onSubmit: (until: Date | null) => void;
   onCancel: () => void;
+  icon?: string;
+  title?: string;
+  subtitle?: string;
+  resumeLabel?: string;
+  quickLabel?: string;
 };
 
 export default function PauseOrderingModal({
   visible,
-  isPaused,
+  isActive,
   onSubmit,
   onCancel,
+  icon = "⏸",
+  title = "Pause Ordering",
+  subtitle = "Stop taking new orders for a while",
+  resumeLabel = "Resume Ordering Now",
+  quickLabel = "Quick Pause",
 }: PauseOrderingModalProps) {
   const [customDate, setCustomDate] = useState(defaultCustomDate);
   const [showIosPicker, setShowIosPicker] = useState(false);
@@ -97,30 +107,24 @@ export default function PauseOrderingModal({
         >
           <View className="items-center mb-5">
             <View className="w-14 h-14 rounded-full bg-amber-100 items-center justify-center mb-2">
-              <Text className="text-2xl">⏸</Text>
+              <Text className="text-2xl">{icon}</Text>
             </View>
-            <Text className="text-lg font-bold text-gray-900">
-              Pause Ordering
-            </Text>
-            <Text className="text-xs text-gray-400 mt-0.5">
-              Stop taking new orders for a while
-            </Text>
+            <Text className="text-lg font-bold text-gray-900">{title}</Text>
+            <Text className="text-xs text-gray-400 mt-0.5">{subtitle}</Text>
           </View>
 
-          {isPaused && (
+          {isActive && (
             <TouchableOpacity
               className="flex-row items-center justify-center gap-2 py-3.5 rounded-2xl items-center bg-emerald-500 mb-4 shadow-sm shadow-emerald-500/30"
               onPress={() => onSubmit(null)}
             >
               <Text className="text-white">▶</Text>
-              <Text className="font-bold text-white">
-                Resume Ordering Now
-              </Text>
+              <Text className="font-bold text-white">{resumeLabel}</Text>
             </TouchableOpacity>
           )}
 
           <Text className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-            Quick Pause
+            {quickLabel}
           </Text>
           <View className="flex-row gap-2 mb-2">
             {QUICK_PAUSES.map((option) => (
