@@ -51,9 +51,11 @@ export default function OrderCard({
         ? "bg-green-100 border-green-200"
         : order.status === OrderStatus.New
           ? "bg-purple-200 border-purple-300"
-          : scheduled
-            ? "bg-orange-100 border-orange-200"
-            : "bg-blue-100 border-blue-200";
+          : order.status === OrderStatus.ReadyForPickup
+            ? "bg-sky-100 border-sky-200"
+            : scheduled
+              ? "bg-orange-100 border-orange-200"
+              : "bg-blue-100 border-blue-200";
 
   const isPrinted = order.printed;
   const isPaid = order.paid;
@@ -67,21 +69,29 @@ export default function OrderCard({
       ? "bg-pink-100"
       : order.status === OrderStatus.InProgress
         ? "bg-blue-100"
-        : order.status === OrderStatus.Completed
-          ? "bg-green-100"
-          : "bg-red-200";
+        : order.status === OrderStatus.ReadyForPickup
+          ? "bg-sky-200"
+          : order.status === OrderStatus.Completed
+            ? "bg-green-100"
+            : "bg-red-200";
 
   const statusTextClass =
     order.status === OrderStatus.New
       ? "text-pink-700"
       : order.status === OrderStatus.InProgress
         ? "text-blue-700"
-        : order.status === OrderStatus.Completed
-          ? "text-green-700"
-          : "text-red-700";
+        : order.status === OrderStatus.ReadyForPickup
+          ? "text-sky-700"
+          : order.status === OrderStatus.Completed
+            ? "text-green-700"
+            : "text-red-700";
 
   const statusLabel =
-    order.status === OrderStatus.InProgress ? "In Progress" : order.status;
+    order.status === OrderStatus.InProgress
+      ? "In Progress"
+      : order.status === OrderStatus.ReadyForPickup
+        ? "Ready for Pickup"
+        : order.status;
 
   const showOrderActions = showActions && order.status !== OrderStatus.New;
 
@@ -90,6 +100,14 @@ export default function OrderCard({
       await updateOrderStatus(order.id, OrderStatus.Completed);
     } catch (error) {
       console.error("Failed to complete order:", error);
+    }
+  };
+
+  const handleMarkReady = async () => {
+    try {
+      await updateOrderStatus(order.id, OrderStatus.ReadyForPickup);
+    } catch (error) {
+      console.error("Failed to mark order ready:", error);
     }
   };
 
@@ -233,7 +251,10 @@ export default function OrderCard({
           )}
 
           {order.status === OrderStatus.InProgress && (
-            <TouchableOpacity className="bg-sky-600 py-3 rounded-lg">
+            <TouchableOpacity
+              className="bg-sky-600 py-3 rounded-lg"
+              onPress={handleMarkReady}
+            >
               <Text className="text-center text-white font-bold">
                 Order Ready
               </Text>

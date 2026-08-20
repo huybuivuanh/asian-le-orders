@@ -43,7 +43,11 @@ export function subscribeToLiveOrders(
 ): Unsubscribe {
   const q = query(
     collection(db, "orders"),
-    where("status", "in", [OrderStatus.New, OrderStatus.InProgress]),
+    where("status", "in", [
+      OrderStatus.New,
+      OrderStatus.InProgress,
+      OrderStatus.ReadyForPickup,
+    ]),
   );
 
   return onSnapshot(
