@@ -150,6 +150,11 @@ declare global {
       sun: DayHours;
     };
     holidays: Holiday[];
+    // Restaurant phone number, managed from the admin panel — dials it for
+    // the unconfirmed-order call escalation. Absent/empty = not configured.
+    // Not editable from this app; typed here only to keep the doc shape in
+    // sync (same convention as hours/holidays above).
+    restaurantPhoneNumber: string;
   }
 
   // --- Orders (written by the customer-facing website, read here for order

@@ -32,6 +32,7 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
     sun: DEFAULT_DAY_HOURS,
   },
   holidays: [],
+  restaurantPhoneNumber: "",
 };
 
 function mapStoreSettingsDoc(data: DocumentData): StoreSettings {

@@ -4,6 +4,7 @@ import { setAudioModeAsync, useAudioPlayer } from "expo-audio";
 import { useEffect, useRef, useState } from "react";
 
 const NEW_ORDER_SOUND = require("../../assets/sounds/new-order.mp3");
+const PLAYBACK_RATE = 1.5;
 
 export function useNewOrderAlert() {
   const [alerting, setAlerting] = useState(false);
@@ -41,6 +42,8 @@ export function useNewOrderAlert() {
   useEffect(() => {
     if (alerting) {
       player.loop = true;
+      player.shouldCorrectPitch = true;
+      player.playbackRate = PLAYBACK_RATE;
       player.play();
     } else {
       player.pause();
