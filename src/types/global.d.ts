@@ -187,6 +187,10 @@ declare global {
     paid: boolean;
     printed: boolean;
     createdAt: Date;
+    // Written only by the confirmOrderCall Cloud Function (asian-le-website-admin/functions),
+    // never by this app. Not read here yet — typed to keep the doc shape in sync.
+    confirmationCallStatus?: "placed" | "failed";
+    confirmationCallPlacedAt?: Date;
   }
 }
 
