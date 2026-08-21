@@ -1,5 +1,7 @@
 import { db } from "@/lib/firebase";
-import { OrderStatus, TakeOutFulfillmentKind } from "@/types/enum";
+import { KitchenType, OrderStatus, TakeOutFulfillmentKind } from "@/types/enum";
+import { generateFirestoreId } from "@/utils/firestoreId";
+import { calculateTaxBreakdown } from "@/utils/orderPricing";
 import {
   type DocumentData,
   type FirestoreError,
@@ -99,4 +101,22 @@ export async function acceptOrder(order: Order, readyTimeMinutes?: number) {
 
 export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   await updateDoc(doc(db, "orders", orderId), { status });
+}
+
+// Lets the restaurant add a line item (e.g. a customer-noted extra) before
+// accepting an order. menuItemId is a client-only id — this item never
+// traces back to a real MenuItem doc.
+export async function addExtraCharge(order: Order, name: string, price: number) {
+  const newItem: OrderItem = {
+    menuItemId: generateFirestoreId(),
+    name,
+    price,
+    quantity: 1,
+    kitchenType: KitchenType.Other,
+  };
+  const orderItems = [...order.orderItems, newItem];
+  const subTotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const taxBreakDown = calculateTaxBreakdown(subTotal);
+
+  await updateDoc(doc(db, "orders", order.id), { orderItems, taxBreakDown });
 }

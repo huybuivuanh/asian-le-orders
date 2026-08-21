@@ -1,4 +1,4 @@
-import { acceptOrder, updateOrderStatus } from "@/services/orders";
+import { acceptOrder, addExtraCharge, updateOrderStatus } from "@/services/orders";
 import { submitOrderToPrintQueue } from "@/services/printQueue";
 import { OrderStatus, TakeOutFulfillmentKind } from "@/types/enum";
 import {
@@ -9,6 +9,7 @@ import {
 } from "@/utils/orderHelpers";
 import { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import ExtraChargeModal from "./ExtraChargeModal";
 
 const READY_MINUTES_STEP = 1;
 const READY_MINUTES_MIN = 5;
@@ -26,6 +27,7 @@ export default function OrderCard({
   defaultReadyMinutes,
 }: OrderCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [extraChargeVisible, setExtraChargeVisible] = useState(false);
 
   const scheduled = fulfillmentIsScheduled(order);
   const scheduledAt = fulfillmentScheduledAt(order);
@@ -127,6 +129,15 @@ export default function OrderCard({
     }
   };
 
+  const handleAddExtraCharge = async (name: string, price: number) => {
+    setExtraChargeVisible(false);
+    try {
+      await addExtraCharge(order, name, price);
+    } catch (error) {
+      console.error("Failed to add extra charge:", error);
+    }
+  };
+
   return (
     <View className={`${cardBg} p-4 mb-3 rounded-xl shadow-sm border`}>
       <TouchableOpacity
@@ -201,10 +212,7 @@ export default function OrderCard({
       {showActions && (
         <View className="mt-3 pt-3 border-t border-gray-200">
           {!scheduled && order.status === OrderStatus.New && (
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-sm font-semibold text-gray-700">
-                Ready In (min)
-              </Text>
+            <View className="flex-row items-center justify-center mb-3">
               <View className="flex-row items-center gap-3">
                 <TouchableOpacity
                   className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center"
@@ -247,6 +255,17 @@ export default function OrderCard({
               }}
             >
               <Text className="text-center text-white font-bold">Accept</Text>
+            </TouchableOpacity>
+          )}
+
+          {order.status === OrderStatus.New && (
+            <TouchableOpacity
+              className="bg-amber-500 py-3 rounded-lg mt-2"
+              onPress={() => setExtraChargeVisible(true)}
+            >
+              <Text className="text-center text-white font-bold">
+                Extra Charge
+              </Text>
             </TouchableOpacity>
           )}
 
@@ -385,6 +404,12 @@ export default function OrderCard({
           )}
         </View>
       )}
+
+      <ExtraChargeModal
+        visible={extraChargeVisible}
+        onSubmit={handleAddExtraCharge}
+        onCancel={() => setExtraChargeVisible(false)}
+      />
     </View>
   );
 }
