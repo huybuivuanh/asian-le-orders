@@ -11,7 +11,7 @@ export interface MenuOptionGroupViewModel {
 }
 
 export interface MenuItemViewModel {
-  item: DemoMenuItem;
+  item: MenuItem;
   availability: SoldOutStatus;
   optionGroups: MenuOptionGroupViewModel[];
 }
@@ -19,7 +19,7 @@ export interface MenuItemViewModel {
 // Unresolved references (an optionGroupId/optionId pointing at a deleted doc)
 // are silently dropped, not errored.
 export function buildMenuItemViewModel(
-  item: DemoMenuItem,
+  item: MenuItem,
   optionGroupsById: Map<string, OptionGroup>,
   optionsById: Map<string, ItemOption>,
   now: Date,

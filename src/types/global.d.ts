@@ -21,17 +21,6 @@ declare global {
     url: string;
   }
 
-  interface MenuItem {
-    id: string;
-    name: string;
-    description?: string;
-    price: number;
-    image?: ImageItem;
-    options?: string[];
-    categoryIds?: string[];
-    createdAt: Date;
-  }
-
   interface DailySpecialItem {
     id: string;
     name: string;
@@ -78,9 +67,7 @@ declare global {
     sun?: TimeRange;
   }
 
-  type DemoCategory = FoodCategory;
-
-  interface DemoMenuItem {
+  interface MenuItem {
     id: string;
     name: string;
     description?: string;

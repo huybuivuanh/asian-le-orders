@@ -1,6 +1,6 @@
 import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
-import { useDemoCategories } from "@/hooks/useDemoCategories";
-import { useDemoMenuItems } from "@/hooks/useDemoMenuItems";
+import { useCategories } from "@/hooks/useCategories";
+import { useMenuItems } from "@/hooks/useMenuItems";
 import { useItemOptions } from "@/hooks/useItemOptions";
 import { useOptionGroups } from "@/hooks/useOptionGroups";
 import {
@@ -24,8 +24,8 @@ const NOW_REFRESH_MS = 60_000;
 
 export default function MenuScreen() {
   const router = useRouter();
-  const { categories, loading: categoriesLoading } = useDemoCategories();
-  const { items, loading: itemsLoading } = useDemoMenuItems();
+  const { categories, loading: categoriesLoading } = useCategories();
+  const { items, loading: itemsLoading } = useMenuItems();
   const { optionGroups, loading: optionGroupsLoading } = useOptionGroups();
   const { options, loading: optionsLoading } = useItemOptions();
   const [search, setSearch] = useState("");
@@ -81,7 +81,7 @@ export default function MenuScreen() {
         id: OTHER_CATEGORY_ID,
         name: "Other",
         order: Number.MAX_SAFE_INTEGER,
-      } as DemoCategory,
+      } as FoodCategory,
     ];
 
     return orderedCategories

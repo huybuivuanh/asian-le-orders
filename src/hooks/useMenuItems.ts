@@ -1,18 +1,18 @@
-import { subscribeToDemoMenuItems } from "@/services/menuData";
+import { subscribeToMenuItems } from "@/services/menuData";
 import { useEffect, useState } from "react";
 
-export function useDemoMenuItems() {
-  const [items, setItems] = useState<DemoMenuItem[]>([]);
+export function useMenuItems() {
+  const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = subscribeToDemoMenuItems(
+    const unsubscribe = subscribeToMenuItems(
       (data) => {
         setItems(data);
         setLoading(false);
       },
       (error) => {
-        console.error("Demo menu items snapshot error:", error);
+        console.error("Menu items snapshot error:", error);
         setLoading(false);
       },
     );

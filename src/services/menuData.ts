@@ -81,7 +81,7 @@ function mapAvailability(raw: unknown): Availability | undefined {
   return result;
 }
 
-// DemoMenuItem.optionGroupIds supports two shapes for backward compat: the
+// MenuItem.optionGroupIds supports two shapes for backward compat: the
 // new { optionGroupId, order }[] form, and a legacy plain string[] form
 // where each entry's array index becomes its order.
 function normalizeOptionGroupRefs(raw: unknown): OptionGroupId[] | undefined {
@@ -110,7 +110,7 @@ function normalizeOptionGroupRefs(raw: unknown): OptionGroupId[] | undefined {
   return refs.sort((a, b) => a.order - b.order);
 }
 
-function mapDemoCategoryDoc(id: string, d: DocumentData): DemoCategory {
+function mapCategoryDoc(id: string, d: DocumentData): FoodCategory {
   return {
     id,
     name: d.name ?? "",
@@ -121,7 +121,7 @@ function mapDemoCategoryDoc(id: string, d: DocumentData): DemoCategory {
   };
 }
 
-function mapDemoMenuItemDoc(id: string, d: DocumentData): DemoMenuItem {
+function mapMenuItemDoc(id: string, d: DocumentData): MenuItem {
   return {
     id,
     name: d.name ?? "",
@@ -166,31 +166,31 @@ function mapItemOptionDoc(id: string, d: DocumentData): ItemOption {
   };
 }
 
-export function subscribeToDemoCategories(
-  onData: (categories: DemoCategory[]) => void,
+export function subscribeToCategories(
+  onData: (categories: FoodCategory[]) => void,
   onError: (error: FirestoreError) => void,
 ): Unsubscribe {
-  const q = query(collection(db, "demoCategories"), orderBy("order"));
+  const q = query(collection(db, "categories"), orderBy("order"));
   return onSnapshot(
     q,
     (snapshot) => {
       onData(
-        snapshot.docs.map((docSnap) => mapDemoCategoryDoc(docSnap.id, docSnap.data())),
+        snapshot.docs.map((docSnap) => mapCategoryDoc(docSnap.id, docSnap.data())),
       );
     },
     onError,
   );
 }
 
-export function subscribeToDemoMenuItems(
-  onData: (items: DemoMenuItem[]) => void,
+export function subscribeToMenuItems(
+  onData: (items: MenuItem[]) => void,
   onError: (error: FirestoreError) => void,
 ): Unsubscribe {
   return onSnapshot(
-    collection(db, "demoMenuItems"),
+    collection(db, "menuItems"),
     (snapshot) => {
       const items = snapshot.docs.map((docSnap) =>
-        mapDemoMenuItemDoc(docSnap.id, docSnap.data()),
+        mapMenuItemDoc(docSnap.id, docSnap.data()),
       );
       onData(sortAlphabetically(items, (item) => item.name));
     },
@@ -232,7 +232,7 @@ export async function updateMenuItemSoldOutUntil(
   itemId: string,
   soldOutUntil: Date | null,
 ) {
-  await updateDoc(doc(db, "demoMenuItems", itemId), {
+  await updateDoc(doc(db, "menuItems", itemId), {
     soldOutUntil: soldOutUntil ? Timestamp.fromDate(soldOutUntil) : null,
   });
 }

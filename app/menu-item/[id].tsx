@@ -1,7 +1,7 @@
 import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
 import SoldOutToggleRow from "@/components/SoldOutToggleRow";
 import PauseOrderingModal from "@/components/PauseOrderingModal";
-import { useDemoMenuItems } from "@/hooks/useDemoMenuItems";
+import { useMenuItems } from "@/hooks/useMenuItems";
 import { useItemOptions } from "@/hooks/useItemOptions";
 import { useOptionGroups } from "@/hooks/useOptionGroups";
 import {
@@ -29,7 +29,7 @@ const NOW_REFRESH_MS = 60_000;
 
 export default function MenuItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { items, loading: itemsLoading } = useDemoMenuItems();
+  const { items, loading: itemsLoading } = useMenuItems();
   const { optionGroups, loading: optionGroupsLoading } = useOptionGroups();
   const { options, loading: optionsLoading } = useItemOptions();
   const [soldOutTarget, setSoldOutTarget] = useState<SoldOutTarget | null>(
