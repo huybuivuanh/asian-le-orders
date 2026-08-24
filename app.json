@@ -7,11 +7,13 @@
     "scheme": "asianleorders",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "icon": "./assets/favicon.png",
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/favicon.png",
         "backgroundColor": "#E6F4FE"
       },
       "edgeToEdgeEnabled": true,
@@ -19,7 +21,8 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "static"
+      "output": "static",
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router",

@@ -47,3 +47,5 @@ app-example
 # editor/tooling
 .claude/
 .vscode/
+
+.firebase
