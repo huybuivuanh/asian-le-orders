@@ -1,3 +1,4 @@
+import { useKeepAwake } from "expo-keep-awake";
 import { Stack } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import {
@@ -39,6 +40,8 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
+  useKeepAwake();
+
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <AuthProvider>
