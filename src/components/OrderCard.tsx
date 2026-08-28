@@ -1,4 +1,8 @@
-import { acceptOrder, addExtraCharge, updateOrderStatus } from "@/services/orders";
+import {
+  acceptOrder,
+  addExtraCharge,
+  updateOrderStatus,
+} from "@/services/orders";
 import { submitOrderToPrintQueue } from "@/services/printQueue";
 import { OrderStatus, TakeOutFulfillmentKind } from "@/types/enum";
 import {
@@ -7,9 +11,15 @@ import {
   fulfillmentIsScheduled,
   fulfillmentScheduledAt,
 } from "@/utils/orderHelpers";
-import { useEffect, useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { cssInterop } from "nativewind";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Platform, Text, TouchableOpacity, View } from "react-native";
 import ExtraChargeModal from "./ExtraChargeModal";
+
+// NativeWind only auto-registers core RN primitives (View, Text, ...) for
+// className support — Animated.View is a separate wrapped component and
+// needs to be opted in explicitly, otherwise className is silently dropped.
+cssInterop(Animated.View, { className: "style" });
 
 const READY_MINUTES_STEP = 1;
 const READY_MINUTES_MIN = 5;
@@ -45,6 +55,36 @@ export default function OrderCard({
     if (existingReadyTimeMinutes != null || defaultReadyMinutes == null) return;
     setReadyMinutes(defaultReadyMinutes);
   }, [defaultReadyMinutes, existingReadyTimeMinutes]);
+
+  // ~1.4Hz opacity pulse on the status badge for unconfirmed orders —
+  // clearly reads as "flashing", still under the 3Hz photosensitive
+  // seizure threshold.
+  const badgePulse = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (order.status !== OrderStatus.New) {
+      badgePulse.setValue(1);
+      return;
+    }
+
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(badgePulse, {
+          toValue: 0.35,
+          duration: 350,
+          useNativeDriver: Platform.OS !== "web",
+        }),
+        Animated.timing(badgePulse, {
+          toValue: 1,
+          duration: 350,
+          useNativeDriver: Platform.OS !== "web",
+        }),
+      ]),
+    );
+    loop.start();
+
+    return () => loop.stop();
+  }, [order.status, badgePulse]);
 
   const cardBg =
     order.status === OrderStatus.Cancelled
@@ -168,9 +208,11 @@ export default function OrderCard({
             Ordered At: {formatOrderDate(order.createdAt)}
           </Text>
           {scheduled && scheduledAt && (
-            <Text className="font-semibold text-gray-800 text-base">
-              Preorder: {formatOrderDate(scheduledAt)}
-            </Text>
+            <View className="mt-1 self-start rounded-md bg-orange-500 px-2 py-1">
+              <Text className="text-xs font-bold text-white">
+                PREORDER · {formatOrderDate(scheduledAt)}
+              </Text>
+            </View>
           )}
         </View>
 
@@ -193,11 +235,18 @@ export default function OrderCard({
               {isPaid ? "Paid" : "Unpaid"}
             </Text>
           </View>
-          <View className={`px-3 py-1 rounded-full ${statusPillClass}`}>
+          <Animated.View
+            style={
+              order.status === OrderStatus.New
+                ? { opacity: badgePulse }
+                : undefined
+            }
+            className={`px-3 py-1 rounded-full ${statusPillClass}`}
+          >
             <Text className={`text-xs font-semibold ${statusTextClass}`}>
               {statusLabel}
             </Text>
-          </View>
+          </Animated.View>
           {showOrderActions && (
             <TouchableOpacity
               className="bg-green-500 px-4 py-2 rounded-lg"
