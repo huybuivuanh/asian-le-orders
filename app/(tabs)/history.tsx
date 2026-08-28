@@ -1,7 +1,7 @@
 import OrderCard from "@/components/OrderCard";
 import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
 import { useOrderHistory } from "@/hooks/useOrderHistory";
-import { ActivityIndicator, FlatList, Text } from "react-native";
+import { ActivityIndicator, FlatList, Text, View } from "react-native";
 
 const LIST_STYLE = {
   flex: 1,
@@ -18,7 +18,7 @@ const LIST_CONTENT_STYLE = {
 };
 
 export default function OrderHistoryScreen() {
-  const { orders, loading } = useOrderHistory();
+  const { orders, loading, hasMore, loadMore } = useOrderHistory();
 
   if (loading) {
     return (
@@ -52,6 +52,15 @@ export default function OrderHistoryScreen() {
         renderItem={({ item }) => (
           <OrderCard order={item} showActions={false} />
         )}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          hasMore ? (
+            <View className="py-4">
+              <ActivityIndicator />
+            </View>
+          ) : null
+        }
       />
     </SafeAreaViewWrapper>
   );

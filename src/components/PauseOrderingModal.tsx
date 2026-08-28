@@ -37,7 +37,6 @@ type PauseOrderingModalProps = {
   isActive: boolean;
   onSubmit: (until: Date | null) => void;
   onCancel: () => void;
-  icon?: string;
   title?: string;
   subtitle?: string;
   resumeLabel?: string;
@@ -49,7 +48,6 @@ export default function PauseOrderingModal({
   isActive,
   onSubmit,
   onCancel,
-  icon = "⏸",
   title = "Pause Ordering",
   subtitle = "Stop taking new orders for a while",
   resumeLabel = "Resume Ordering Now",
@@ -102,41 +100,38 @@ export default function PauseOrderingModal({
         onPress={onCancel}
       >
         <Pressable
-          className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-xl"
+          className="w-full max-w-sm rounded-xl bg-white p-5"
           onPress={() => {}}
         >
-          <View className="items-center mb-5">
-            <View className="w-14 h-14 rounded-full bg-amber-100 items-center justify-center mb-2">
-              <Text className="text-2xl">{icon}</Text>
-            </View>
-            <Text className="text-lg font-bold text-gray-900">{title}</Text>
-            <Text className="text-xs text-gray-400 mt-0.5">{subtitle}</Text>
-          </View>
+          <Text className="text-base font-semibold text-gray-800 text-center mb-1">
+            {title}
+          </Text>
+          <Text className="text-xs text-gray-400 text-center mb-4">
+            {subtitle}
+          </Text>
 
           {isActive && (
             <TouchableOpacity
-              className="flex-row items-center justify-center gap-2 py-3.5 rounded-2xl items-center bg-emerald-500 mb-4 shadow-sm shadow-emerald-500/30"
+              className="py-3 rounded-md items-center bg-emerald-500 mb-4"
               onPress={() => onSubmit(null)}
             >
-              <Text className="text-white">▶</Text>
-              <Text className="font-bold text-white">{resumeLabel}</Text>
+              <Text className="font-semibold text-white">{resumeLabel}</Text>
             </TouchableOpacity>
           )}
 
-          <Text className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+          <Text className="text-xs font-semibold text-gray-500 mb-2">
             {quickLabel}
           </Text>
           <View className="flex-row gap-2 mb-2">
             {QUICK_PAUSES.map((option) => (
               <TouchableOpacity
                 key={option.label}
-                className="flex-1 py-3 rounded-2xl items-center bg-amber-50 border border-amber-100"
+                className="flex-1 py-2 rounded-md items-center bg-gray-200"
                 onPress={() =>
                   onSubmit(new Date(Date.now() + option.hours * HOUR_MS))
                 }
               >
-                <Text className="text-base mb-0.5">⏱</Text>
-                <Text className="font-bold text-amber-800 text-sm">
+                <Text className="font-semibold text-gray-700 text-sm">
                   {option.label}
                 </Text>
               </TouchableOpacity>
@@ -145,46 +140,44 @@ export default function PauseOrderingModal({
 
           <View className="flex-row gap-2 mb-4">
             <TouchableOpacity
-              className="flex-1 py-3 rounded-2xl items-center bg-amber-50 border border-amber-100"
+              className="flex-1 py-3 rounded-md items-center bg-gray-200"
               onPress={() => onSubmit(untilTomorrow())}
             >
-              <Text className="text-base mb-0.5">🌙</Text>
-              <Text className="font-bold text-amber-800 text-sm">
+              <Text className="font-semibold text-gray-700 text-sm">
                 Until Tomorrow
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              className="flex-1 py-3 rounded-2xl items-center bg-red-50 border border-red-100"
+              className="flex-1 py-3 rounded-md items-center bg-red-100"
               onPress={() => onSubmit(INDEFINITE_PAUSE)}
             >
-              <Text className="text-base mb-0.5">⏻</Text>
-              <Text className="font-bold text-red-700 text-sm">
+              <Text className="font-semibold text-red-700 text-sm">
                 Indefinitely
               </Text>
             </TouchableOpacity>
           </View>
 
-          <Text className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+          <Text className="text-xs font-semibold text-gray-500 mb-2">
             Custom
           </Text>
 
           {Platform.OS === "web" ? (
-            <View className="rounded-2xl border border-stone-200 bg-stone-50 p-3 mb-4 gap-2">
+            <View className="mb-4 gap-2">
               <WebDateTimeInput value={customDate} onChange={setCustomDate} />
               <TouchableOpacity
-                className="py-2.5 rounded-xl items-center bg-emerald-500"
+                className="py-2.5 rounded-md items-center bg-emerald-500"
                 onPress={() => onSubmit(customDate)}
               >
-                <Text className="font-bold text-white">Confirm</Text>
+                <Text className="font-semibold text-white">Confirm</Text>
               </TouchableOpacity>
             </View>
           ) : (
-            <View className="rounded-2xl border border-stone-200 bg-stone-50 p-3 mb-4">
+            <View className="mb-4">
               <TouchableOpacity
-                className={`py-2.5 rounded-xl items-center bg-sky-100 ${showIosPicker ? "mb-2" : ""}`}
+                className={`py-2.5 rounded-md items-center bg-gray-200 ${showIosPicker ? "mb-2" : ""}`}
                 onPress={pickCustomDate}
               >
-                <Text className="font-bold text-sky-700">
+                <Text className="font-semibold text-gray-700">
                   Pick Custom Date & Time…
                 </Text>
               </TouchableOpacity>
@@ -201,10 +194,10 @@ export default function PauseOrderingModal({
                     }}
                   />
                   <TouchableOpacity
-                    className="py-2.5 rounded-xl items-center bg-emerald-500 mt-2"
+                    className="py-2.5 rounded-md items-center bg-emerald-500 mt-2"
                     onPress={() => onSubmit(customDate)}
                   >
-                    <Text className="font-bold text-white">Confirm</Text>
+                    <Text className="font-semibold text-white">Confirm</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -212,10 +205,10 @@ export default function PauseOrderingModal({
           )}
 
           <TouchableOpacity
-            className="py-3 rounded-2xl items-center"
+            className="py-3 rounded-md items-center bg-gray-200"
             onPress={onCancel}
           >
-            <Text className="font-semibold text-gray-400">Cancel</Text>
+            <Text className="font-semibold text-gray-700">Cancel</Text>
           </TouchableOpacity>
         </Pressable>
       </Pressable>

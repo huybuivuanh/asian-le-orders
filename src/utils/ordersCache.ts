@@ -4,6 +4,12 @@ import { TakeOutFulfillmentKind } from "@/types/enum";
 const LIVE_ORDERS_CACHE_KEY = "@liveOrders:cache";
 const ORDER_HISTORY_CACHE_KEY = "@orderHistory:cache";
 
+// Mirrors ORDER_HISTORY_LIMIT in services/orders.ts. Enforced here too so a
+// stale/oversized cache entry (e.g. written by a future version with a
+// higher limit) can never render more than intended before the live
+// snapshot overwrites it.
+const ORDER_HISTORY_CACHE_LIMIT = 100;
+
 // Revive Date fields that were flattened to ISO strings by JSON.stringify.
 function reviveOrder(order: Order): Order {
   return {
@@ -61,9 +67,13 @@ export function loadLiveOrdersCache(): Promise<Order[] | null> {
 }
 
 export function saveOrderHistoryCache(orders: Order[]): void {
-  debouncedSaveCache(ORDER_HISTORY_CACHE_KEY, orders);
+  debouncedSaveCache(
+    ORDER_HISTORY_CACHE_KEY,
+    orders.slice(0, ORDER_HISTORY_CACHE_LIMIT),
+  );
 }
 
-export function loadOrderHistoryCache(): Promise<Order[] | null> {
-  return loadCache(ORDER_HISTORY_CACHE_KEY);
+export async function loadOrderHistoryCache(): Promise<Order[] | null> {
+  const orders = await loadCache(ORDER_HISTORY_CACHE_KEY);
+  return orders ? orders.slice(0, ORDER_HISTORY_CACHE_LIMIT) : null;
 }

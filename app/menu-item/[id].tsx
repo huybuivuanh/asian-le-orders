@@ -170,7 +170,6 @@ export default function MenuItemDetailScreen() {
         isActive={modalIsActive ?? false}
         onSubmit={handleSoldOutSubmit}
         onCancel={() => setSoldOutTarget(null)}
-        icon="🚫"
         title={
           soldOutTarget?.kind === "option"
             ? `Mark "${soldOutTarget.optionName}" Sold Out`
