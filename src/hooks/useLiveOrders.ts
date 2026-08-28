@@ -1,4 +1,5 @@
 import { subscribeToLiveOrders } from "@/services/orders";
+import { loadLiveOrdersCache, saveLiveOrdersCache } from "@/utils/ordersCache";
 import { useEffect, useState } from "react";
 
 export function useLiveOrders() {
@@ -6,10 +7,20 @@ export function useLiveOrders() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
+    void loadLiveOrdersCache().then((cached) => {
+      if (!cancelled && cached && cached.length > 0) {
+        setOrders(cached);
+        setLoading(false);
+      }
+    });
+
     const unsubscribe = subscribeToLiveOrders(
       (data) => {
         setOrders(data);
         setLoading(false);
+        saveLiveOrdersCache(data);
       },
       (error) => {
         console.error("Live orders snapshot error:", error);
@@ -17,7 +28,10 @@ export function useLiveOrders() {
       },
     );
 
-    return unsubscribe;
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, []);
 
   return { orders, loading };
