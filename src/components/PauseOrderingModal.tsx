@@ -188,6 +188,8 @@ export default function PauseOrderingModal({
                     value={customDate}
                     mode="datetime"
                     display="spinner"
+                    themeVariant="light"
+                    textColor="#374151"
                     minimumDate={new Date()}
                     onChange={(_event, date) => {
                       if (date) setCustomDate(date);

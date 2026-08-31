@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "asian-le-orders",
+    "name": "Asian Le Orders",
     "slug": "asian-le-orders",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "asianleorders",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "icon": "./assets/favicon.png",
     "ios": {
