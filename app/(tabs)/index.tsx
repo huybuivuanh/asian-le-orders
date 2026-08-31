@@ -1,5 +1,6 @@
 import OrderCard from "@/components/OrderCard";
 import PauseOrderingModal from "@/components/PauseOrderingModal";
+import PausedStatusModal from "@/components/PausedStatusModal";
 import PrepTimeModal from "@/components/PrepTimeModal";
 import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
 import { useLiveOrders } from "@/hooks/useLiveOrders";
@@ -9,7 +10,7 @@ import {
   updateStoreWaitTime,
 } from "@/services/storeSettings";
 import { formatPausedUntil, isStorePaused } from "@/utils/storeSettingsHelpers";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -38,7 +39,15 @@ export default function LiveOrdersScreen() {
   const isPaused = isStorePaused(settings);
 
   const [pauseModalVisible, setPauseModalVisible] = useState(false);
+  const [pausedInfoVisible, setPausedInfoVisible] = useState(false);
   const [prepTimeVisible, setPrepTimeVisible] = useState(false);
+
+  // Surface the paused-status modal whenever the store enters the paused
+  // state; hide it once ordering resumes. Dismissing it doesn't fight this
+  // effect because isPaused hasn't changed.
+  useEffect(() => {
+    setPausedInfoVisible(isPaused);
+  }, [isPaused]);
 
   const handleSelectPause = async (pausedUntil: Date | null) => {
     setPauseModalVisible(false);
@@ -63,7 +72,9 @@ export default function LiveOrdersScreen() {
       <View className="flex-row gap-2 px-4 pt-4">
         <TouchableOpacity
           className={`flex-row items-center gap-1.5 px-4 py-2 rounded-full ${isPaused ? "bg-gray-400" : "bg-emerald-500"}`}
-          onPress={() => setPauseModalVisible(true)}
+          onPress={() =>
+            isPaused ? setPausedInfoVisible(true) : setPauseModalVisible(true)
+          }
         >
           <Text className="text-white text-xs">●</Text>
           <Text className="text-white font-semibold text-sm">
@@ -88,6 +99,20 @@ export default function LiveOrdersScreen() {
         isActive={isPaused}
         onSubmit={handleSelectPause}
         onCancel={() => setPauseModalVisible(false)}
+      />
+
+      <PausedStatusModal
+        visible={pausedInfoVisible}
+        pausedUntil={settings.pausedUntil ?? null}
+        onResume={() => {
+          setPausedInfoVisible(false);
+          void handleSelectPause(null);
+        }}
+        onChangePause={() => {
+          setPausedInfoVisible(false);
+          setPauseModalVisible(true);
+        }}
+        onDismiss={() => setPausedInfoVisible(false)}
       />
 
       <PrepTimeModal
