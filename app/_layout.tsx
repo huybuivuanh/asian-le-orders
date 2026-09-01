@@ -9,11 +9,13 @@ import {
 import NewOrderAlertOverlay from "@/components/NewOrderAlertOverlay";
 import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { useInactivityReload } from "@/hooks/useInactivityReload";
 
 import "../global.css";
 
 function RootNavigator() {
   const { user, initializing } = useAuth();
+  const notifyActivity = useInactivityReload(!!user);
 
   if (initializing) {
     return (
@@ -24,7 +26,7 @@ function RootNavigator() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1 }} onTouchStart={notifyActivity}>
       <Stack>
         <Stack.Protected guard={!!user}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

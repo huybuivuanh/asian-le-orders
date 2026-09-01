@@ -6,6 +6,14 @@ import { useEffect, useRef, useState } from "react";
 const NEW_ORDER_SOUND = require("../../assets/sounds/new-order.mp3");
 const PLAYBACK_RATE = 1.5;
 
+/**
+ * Module-level mirror of the live alert state. Lets the inactivity-reload timer
+ * (src/hooks/useInactivityReload.ts) check "is the alarm sounding right now?"
+ * without threading React state up to the root layout. Written only by the
+ * effect below; read only by useInactivityReload.
+ */
+export const newOrderAlertActiveRef = { current: false };
+
 export function useNewOrderAlert() {
   const [alerting, setAlerting] = useState(false);
   const seenIdsRef = useRef<Set<string> | null>(null);
@@ -49,6 +57,13 @@ export function useNewOrderAlert() {
       player.pause();
     }
   }, [alerting, player]);
+
+  useEffect(() => {
+    newOrderAlertActiveRef.current = alerting;
+    return () => {
+      newOrderAlertActiveRef.current = false;
+    };
+  }, [alerting]);
 
   const dismiss = () => setAlerting(false);
 
