@@ -35,7 +35,7 @@ const LIST_CONTENT_STYLE = {
 
 export default function LiveOrdersScreen() {
   const { orders, loading } = useLiveOrders();
-  const { settings } = useStoreSettings();
+  const { settings, loading: settingsLoading } = useStoreSettings();
   const isPaused = isStorePaused(settings);
 
   const [pauseModalVisible, setPauseModalVisible] = useState(false);
@@ -44,10 +44,13 @@ export default function LiveOrdersScreen() {
 
   // Surface the paused-status modal whenever the store enters the paused
   // state; hide it once ordering resumes. Dismissing it doesn't fight this
-  // effect because isPaused hasn't changed.
+  // effect because isPaused hasn't changed. Wait for the real settings snapshot
+  // first — DEFAULT_STORE_SETTINGS seeds pausedUntil to the INDEFINITE_PAUSE
+  // sentinel, which would otherwise flash the modal open on every app launch.
   useEffect(() => {
+    if (settingsLoading) return;
     setPausedInfoVisible(isPaused);
-  }, [isPaused]);
+  }, [isPaused, settingsLoading]);
 
   const handleSelectPause = async (pausedUntil: Date | null) => {
     setPauseModalVisible(false);
