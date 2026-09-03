@@ -21,7 +21,16 @@ const ORDER_HISTORY_LIMIT = 100;
 
 function toDate(value: unknown): Date {
   if (value instanceof Timestamp) return value.toDate();
-  return value as Date;
+  if (value instanceof Date) return value;
+  if (value && typeof (value as { toDate?: unknown }).toDate === "function") {
+    return (value as { toDate: () => Date }).toDate();
+  }
+  if (typeof value === "number") return new Date(value);
+  // Missing / pending value. A brand-new order from the customer-facing site
+  // is written with serverTimestamp(); Firestore's latency-compensated first
+  // snapshot delivers createdAt as null before the server resolves it. Fall
+  // back to "now" so mapping and the client-side createdAt sort can't throw.
+  return new Date();
 }
 
 function mapOrderDoc(id: string, data: DocumentData): Order {
@@ -37,6 +46,27 @@ function mapOrderDoc(id: string, data: DocumentData): Order {
           }
         : data.fulfillment,
   } as Order;
+}
+
+// A snapshot callback that throws crashes the whole app (in a release build an
+// uncaught error here is fatal — it takes down the RN runtime, not just this
+// screen). The `orders` collection is written by a separate repo, so one
+// malformed doc must never be able to do that: map each doc defensively and
+// drop the ones that fail rather than letting the exception escape.
+function mapOrderDocsSafely(snapshot: {
+  docs: { id: string; data: (options?: object) => DocumentData }[];
+}): Order[] {
+  const orders: Order[] = [];
+  for (const docSnap of snapshot.docs) {
+    try {
+      orders.push(
+        mapOrderDoc(docSnap.id, docSnap.data({ serverTimestamps: "estimate" })),
+      );
+    } catch (error) {
+      console.error(`Skipping unmappable order doc ${docSnap.id}:`, error);
+    }
+  }
+  return orders;
 }
 
 export function subscribeToLiveOrders(
@@ -55,10 +85,10 @@ export function subscribeToLiveOrders(
   return onSnapshot(
     q,
     (snapshot) => {
-      const orders = snapshot.docs.map((docSnap) =>
-        mapOrderDoc(docSnap.id, docSnap.data()),
+      const orders = mapOrderDocsSafely(snapshot);
+      orders.sort(
+        (a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0),
       );
-      orders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
       onData(orders);
     },
     onError,
@@ -78,9 +108,7 @@ export function subscribeToOrderHistory(
   return onSnapshot(
     q,
     (snapshot) => {
-      onData(
-        snapshot.docs.map((docSnap) => mapOrderDoc(docSnap.id, docSnap.data())),
-      );
+      onData(mapOrderDocsSafely(snapshot));
     },
     onError,
   );
