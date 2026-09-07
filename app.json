@@ -46,7 +46,14 @@
       ],
       "@react-native-community/datetimepicker",
       "expo-audio",
-      "expo-asset"
+      "expo-asset",
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "asian-le-restaurant",
+          "project": "asian-le-orders"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

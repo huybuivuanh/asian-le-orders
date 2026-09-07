@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native";
 import { useKeepAwake } from "expo-keep-awake";
 import { Stack } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
@@ -12,6 +13,20 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useInactivityReload } from "@/hooks/useInactivityReload";
 
 import "../global.css";
+
+Sentry.init({
+  // DSN is not a secret — it only permits sending events to this project.
+  dsn: "https://123ebbd1e990cf683e0442a51ff6f824@o4512046229094400.ingest.us.sentry.io/4512046248099840",
+  // No PII (no emails/IPs) attached to events.
+  sendDefaultPii: false,
+  // Crash/error reporting only — no performance tracing, to stay well within
+  // the free quota.
+  tracesSampleRate: 0,
+  // Keep the last 100 console.* calls, network requests, and navigations as
+  // breadcrumbs so a rare crash shows what led up to it.
+  maxBreadcrumbs: 100,
+  environment: __DEV__ ? "development" : "production",
+});
 
 function RootNavigator() {
   const { user, initializing } = useAuth();
@@ -41,7 +56,7 @@ function RootNavigator() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   useKeepAwake();
 
   return (
@@ -52,3 +67,6 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+// Sentry.wrap adds the error boundary + native crash hooks around the app.
+export default Sentry.wrap(RootLayout);
