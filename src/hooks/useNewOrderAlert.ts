@@ -49,9 +49,14 @@ export function useNewOrderAlert() {
 
   useEffect(() => {
     if (alerting) {
+      // expo-audio's AudioPlayer is configured imperatively: loop is a public
+      // setter (not React state, so the react-hooks immutability rule flags
+      // it), shouldCorrectPitch likewise, and playbackRate is getter-only at
+      // runtime so it must go through setPlaybackRate().
+      /* eslint-disable-next-line react-hooks/immutability */
       player.loop = true;
       player.shouldCorrectPitch = true;
-      player.playbackRate = PLAYBACK_RATE;
+      player.setPlaybackRate(PLAYBACK_RATE);
       player.play();
     } else {
       player.pause();

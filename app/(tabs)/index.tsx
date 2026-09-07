@@ -10,7 +10,7 @@ import {
   updateStoreWaitTime,
 } from "@/services/storeSettings";
 import { formatPausedUntil, isStorePaused } from "@/utils/storeSettingsHelpers";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -41,16 +41,18 @@ export default function LiveOrdersScreen() {
   const [pauseModalVisible, setPauseModalVisible] = useState(false);
   const [pausedInfoVisible, setPausedInfoVisible] = useState(false);
   const [prepTimeVisible, setPrepTimeVisible] = useState(false);
+  const [syncedPaused, setSyncedPaused] = useState<boolean | null>(null);
 
   // Surface the paused-status modal whenever the store enters the paused
   // state; hide it once ordering resumes. Dismissing it doesn't fight this
-  // effect because isPaused hasn't changed. Wait for the real settings snapshot
-  // first — DEFAULT_STORE_SETTINGS seeds pausedUntil to the INDEFINITE_PAUSE
-  // sentinel, which would otherwise flash the modal open on every app launch.
-  useEffect(() => {
-    if (settingsLoading) return;
+  // because syncedPaused only tracks isPaused transitions. Wait for the real
+  // settings snapshot first — DEFAULT_STORE_SETTINGS seeds pausedUntil to the
+  // INDEFINITE_PAUSE sentinel, which would otherwise flash the modal open on
+  // every app launch.
+  if (!settingsLoading && isPaused !== syncedPaused) {
+    setSyncedPaused(isPaused);
     setPausedInfoVisible(isPaused);
-  }, [isPaused, settingsLoading]);
+  }
 
   const handleSelectPause = async (pausedUntil: Date | null) => {
     setPauseModalVisible(false);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 
 const STEP = 1;
@@ -20,10 +20,13 @@ export default function PrepTimeModal({
   onCancel,
 }: PrepTimeModalProps) {
   const [value, setValue] = useState(initialValue);
+  const [wasVisible, setWasVisible] = useState(visible);
 
-  useEffect(() => {
+  // Re-seed from initialValue each time the modal transitions closed → open.
+  if (visible !== wasVisible) {
+    setWasVisible(visible);
     if (visible) setValue(initialValue);
-  }, [visible, initialValue]);
+  }
 
   return (
     <Modal

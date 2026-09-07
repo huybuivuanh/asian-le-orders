@@ -12,7 +12,7 @@ import {
   fulfillmentScheduledAt,
 } from "@/utils/orderHelpers";
 import { cssInterop } from "nativewind";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Animated, Platform, Text, TouchableOpacity, View } from "react-native";
 import ExtraChargeModal from "./ExtraChargeModal";
 
@@ -50,16 +50,24 @@ export default function OrderCard({
   const [readyMinutes, setReadyMinutes] = useState(
     existingReadyTimeMinutes ?? defaultReadyMinutes ?? 0,
   );
+  const [syncedDefault, setSyncedDefault] = useState(defaultReadyMinutes);
 
-  useEffect(() => {
-    if (existingReadyTimeMinutes != null || defaultReadyMinutes == null) return;
+  // Re-seed the stepper when the live default wait time changes, unless the
+  // order already carries its own readyTimeMinutes.
+  if (
+    existingReadyTimeMinutes == null &&
+    defaultReadyMinutes != null &&
+    defaultReadyMinutes !== syncedDefault
+  ) {
+    setSyncedDefault(defaultReadyMinutes);
     setReadyMinutes(defaultReadyMinutes);
-  }, [defaultReadyMinutes, existingReadyTimeMinutes]);
+  }
 
   // ~1.4Hz opacity pulse on the status badge for unconfirmed orders —
   // clearly reads as "flashing", still under the 3Hz photosensitive
-  // seizure threshold.
-  const badgePulse = useRef(new Animated.Value(1)).current;
+  // seizure threshold. Lazy useState keeps one stable Animated.Value for the
+  // component's life without touching a ref during render.
+  const [badgePulse] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
     if (order.status !== OrderStatus.New) {

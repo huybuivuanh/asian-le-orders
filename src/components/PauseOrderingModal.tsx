@@ -2,7 +2,7 @@ import { INDEFINITE_PAUSE } from "@/utils/storeSettingsHelpers";
 import DateTimePicker, {
   DateTimePickerAndroid,
 } from "@react-native-community/datetimepicker";
-import { createElement, useEffect, useState } from "react";
+import { createElement, useState } from "react";
 import {
   Modal,
   Platform,
@@ -55,13 +55,16 @@ export default function PauseOrderingModal({
 }: PauseOrderingModalProps) {
   const [customDate, setCustomDate] = useState(defaultCustomDate);
   const [showIosPicker, setShowIosPicker] = useState(false);
+  const [wasVisible, setWasVisible] = useState(visible);
 
-  useEffect(() => {
+  // Reset the custom picker each time the modal transitions closed → open.
+  if (visible !== wasVisible) {
+    setWasVisible(visible);
     if (visible) {
       setCustomDate(defaultCustomDate());
       setShowIosPicker(false);
     }
-  }, [visible]);
+  }
 
   const pickCustomDate = () => {
     if (Platform.OS === "android") {

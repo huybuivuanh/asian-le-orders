@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Modal,
   Pressable,
@@ -21,13 +21,17 @@ export default function ExtraChargeModal({
 }: ExtraChargeModalProps) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
+  const [wasVisible, setWasVisible] = useState(visible);
 
-  useEffect(() => {
+  // Clear the fields each time the modal transitions closed → open, so a
+  // reopened modal never shows the previous entry.
+  if (visible !== wasVisible) {
+    setWasVisible(visible);
     if (visible) {
       setName("");
       setPrice("");
     }
-  }, [visible]);
+  }
 
   const parsedPrice = Number(price);
   const isValid =

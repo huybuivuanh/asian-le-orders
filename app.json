@@ -6,7 +6,6 @@
     "orientation": "portrait",
     "scheme": "asianleorders",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "icon": "./assets/favicon.png",
     "ios": {
       "supportsTablet": true,
@@ -20,7 +19,6 @@
         "foregroundImage": "./assets/favicon.png",
         "backgroundColor": "#E6F4FE"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.RECORD_AUDIO",
@@ -47,7 +45,8 @@
         }
       ],
       "@react-native-community/datetimepicker",
-      "expo-audio"
+      "expo-audio",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,
