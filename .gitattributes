@@ -1,0 +1,3 @@
+# patch-package patches must keep LF endings or `git apply` rejects them
+# (this repo has core.autocrlf=true).
+patches/*.patch text eol=lf

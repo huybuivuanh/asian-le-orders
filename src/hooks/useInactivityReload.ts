@@ -24,8 +24,13 @@ const WEB_ACTIVITY_EVENTS = [
  * in-memory document cache and the JS heap grow until the app is laggy or
  * crashes; a hard reload is the only reset that clears them.
  *
- * - Native: Updates.reloadAsync() after touch-idle, and on returning to the
- *   foreground from a background that lasted at least the timeout.
+ * - Native: Updates.reloadAsync() after touch-idle only. Returning to the
+ *   foreground re-arms that timer; it never reloads synchronously on resume.
+ *   reloadAsync() there tears down native modules while Firestore is
+ *   auto-reconnecting and crashes in RCTNetworking (a transiently-nil
+ *   BlobModule in React Native's URL-handler list — see
+ *   patches/react-native+0.86.3.patch). A parked device instead reloads a
+ *   timeout after it's reopened, via the safe idle path.
  * - Web: window.location.replace("/") after DOM-activity-idle, on becoming
  *   visible again after being hidden at least the timeout, and immediately on
  *   an unrecoverable Firestore WebChannel error ("INTERNAL ASSERTION FAILED").
@@ -119,17 +124,13 @@ export function useInactivityReload(enabled: boolean): () => void {
       };
     }
 
-    // Native: idle timer above, plus reload on foreground after a long background.
-    let backgroundedAt: number | null = null;
+    // Native: the touch-idle timer above is the only reload path. Coming back to
+    // the foreground just re-arms it — we deliberately never call fire()
+    // synchronously on resume, because reloadAsync() then races Firestore's
+    // reconnect into a native crash (see the block comment above). If the app
+    // then sits untouched for the full timeout it still reloads via that path.
     const sub = AppState.addEventListener("change", (state) => {
-      if (state !== "active") {
-        backgroundedAt ??= Date.now();
-        return;
-      }
-      const awayMs = backgroundedAt === null ? 0 : Date.now() - backgroundedAt;
-      backgroundedAt = null;
-      if (awayMs >= INACTIVITY_TIMEOUT_MS) fire();
-      else arm();
+      if (state === "active") arm();
     });
 
     return () => {

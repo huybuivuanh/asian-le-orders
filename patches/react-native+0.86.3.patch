@@ -1,0 +1,30 @@
+diff --git a/node_modules/react-native/Libraries/AppDelegate/RCTAppSetupUtils.mm b/node_modules/react-native/Libraries/AppDelegate/RCTAppSetupUtils.mm
+index fabfff3..49f39ce 100644
+--- a/node_modules/react-native/Libraries/AppDelegate/RCTAppSetupUtils.mm
++++ b/node_modules/react-native/Libraries/AppDelegate/RCTAppSetupUtils.mm
+@@ -103,12 +103,19 @@ id<RCTTurboModule> RCTAppSetupDefaultModuleFromClass(Class moduleClass, id<RCTDe
+         initWithHandlersProvider:^NSArray<id<RCTURLRequestHandler>> *(RCTModuleRegistry *moduleRegistry) {
+           NSArray *URLRequestHandlerModules =
+               extractModuleConformingToProtocol(moduleRegistry, @protocol(RCTURLRequestHandler));
+-          return [@[
+-            [RCTHTTPRequestHandler new],
+-            [RCTDataRequestHandler new],
+-            [RCTFileRequestHandler new],
+-            [moduleRegistry moduleForName:"BlobModule"],
+-          ] arrayByAddingObjectsFromArray:URLRequestHandlerModules];
++          NSMutableArray *defaultHandlers = [NSMutableArray arrayWithObjects:[RCTHTTPRequestHandler new],
++                                                                             [RCTDataRequestHandler new],
++                                                                             [RCTFileRequestHandler new],
++                                                                             nil];
++          // BlobModule can be briefly unresolvable while the module registry is
++          // being rebuilt (e.g. during Updates.reloadAsync()). A nil element
++          // here would throw in +[NSArray arrayWithObjects:count:] and crash the
++          // app, so drop it instead when it's missing.
++          id blobModule = [moduleRegistry moduleForName:"BlobModule"];
++          if (blobModule != nil) {
++            [defaultHandlers addObject:blobModule];
++          }
++          return [defaultHandlers arrayByAddingObjectsFromArray:URLRequestHandlerModules];
+         }];
+   }
+   // No custom initializer here.
