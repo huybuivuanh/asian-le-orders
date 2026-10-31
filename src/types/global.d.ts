@@ -174,6 +174,20 @@ declare global {
     | { kind: TakeOutFulfillmentKind.Immediate; readyTimeMinutes?: number }
     | { kind: TakeOutFulfillmentKind.Scheduled; scheduledAt: Date };
 
+  // Rewards member linked at checkout by the website (asian-le-rewards project). Same
+  // field as the POS's order.loyalty; this app adds pointsEarned/collectedAt on Complete.
+  interface OrderLoyalty {
+    memberId: string;
+    memberName: string;
+    pointsEarned?: number;
+    collectedAt?: Date;
+    // Set when a cancelled order's collected points were removed (reverseOrder), or
+    // reversePending if staff cancelled anyway after removing them failed.
+    reversedAt?: Date;
+    pointsReversed?: number;
+    reversePending?: boolean;
+  }
+
   interface Order {
     id: string;
     orderNumber: string;
@@ -184,6 +198,7 @@ declare global {
     customerEmail: string;
     orderItems: OrderItem[];
     taxBreakDown: OrderTaxBreakDown;
+    loyalty?: OrderLoyalty;
     paid: boolean;
     printed: boolean;
     createdAt: Date;

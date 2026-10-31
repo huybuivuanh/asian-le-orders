@@ -1,4 +1,5 @@
 import ConfirmModal from "@/components/ConfirmModal";
+import RewardsDeviceCard from "@/components/RewardsDeviceCard";
 import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
 import { useAuth } from "@/contexts/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
@@ -34,6 +35,8 @@ export default function SettingsScreen() {
             </View>
           </View>
         </View>
+
+        <RewardsDeviceCard />
 
         <TouchableOpacity
           className="flex-row items-center justify-center gap-2 py-3.5 rounded-2xl bg-red-50 border border-red-100"

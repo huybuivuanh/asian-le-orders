@@ -4,6 +4,13 @@ import {
   updateOrderStatus,
 } from "@/services/orders";
 import { submitOrderToPrintQueue } from "@/services/printQueue";
+import {
+  collectOrderPoints,
+  markReversePending,
+  needsPointsCollected,
+  needsPointsReversed,
+  reverseOrderPoints,
+} from "@/services/rewards";
 import { OrderStatus, TakeOutFulfillmentKind } from "@/types/enum";
 import {
   formatOrderDate,
@@ -14,6 +21,7 @@ import {
 import { cssInterop } from "nativewind";
 import { useEffect, useState } from "react";
 import { Animated, Platform, Text, TouchableOpacity, View } from "react-native";
+import ConfirmModal from "./ConfirmModal";
 import ExtraChargeModal from "./ExtraChargeModal";
 
 // NativeWind only auto-registers core RN primitives (View, Text, ...) for
@@ -38,6 +46,11 @@ export default function OrderCard({
 }: OrderCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [extraChargeVisible, setExtraChargeVisible] = useState(false);
+  // Rewards: collecting the member's points on Complete (online orders linked at checkout).
+  const [collecting, setCollecting] = useState(false);
+  const [collectError, setCollectError] = useState<string | null>(null);
+  const [historyCollectError, setHistoryCollectError] = useState<string | null>(null);
+  const [reverseError, setReverseError] = useState<string | null>(null);
 
   const scheduled = fulfillmentIsScheduled(order);
   const scheduledAt = fulfillmentScheduledAt(order);
@@ -145,13 +158,49 @@ export default function OrderCard({
 
   const showOrderActions = showActions && order.status !== OrderStatus.New;
 
-  const handleComplete = async () => {
+  const completeOrder = async () => {
     try {
       await updateOrderStatus(order.id, OrderStatus.Completed);
     } catch (error) {
       console.error("Failed to complete order:", error);
     }
   };
+
+  // Collect the member's points first: a completed order leaves the live list. If
+  // collecting fails, staff choose to complete anyway and collect later from History.
+  const handleComplete = async () => {
+    if (collecting) return;
+    if (needsPointsCollected(order)) {
+      setCollecting(true);
+      try {
+        await collectOrderPoints(order);
+      } catch (error) {
+        setCollectError(error instanceof Error ? error.message : String(error));
+        return;
+      } finally {
+        setCollecting(false);
+      }
+    }
+    await completeOrder();
+  };
+
+  const handleCollectFromHistory = async () => {
+    setCollecting(true);
+    setHistoryCollectError(null);
+    try {
+      await collectOrderPoints(order);
+    } catch (error) {
+      setHistoryCollectError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setCollecting(false);
+    }
+  };
+
+  const loyalty = order.loyalty;
+  const canCollectFromHistory =
+    !showActions && order.status === OrderStatus.Completed && needsPointsCollected(order);
+  const canReverseFromHistory =
+    !showActions && order.status === OrderStatus.Cancelled && needsPointsReversed(order);
 
   const handleMarkReady = async () => {
     try {
@@ -161,11 +210,42 @@ export default function OrderCard({
     }
   };
 
-  const handleCancel = async () => {
+  const cancelOrder = async () => {
     try {
       await updateOrderStatus(order.id, OrderStatus.Cancelled);
     } catch (error) {
       console.error("Failed to cancel order:", error);
+    }
+  };
+
+  // Rare: points were collected but the order didn't end up Completed (e.g. the status
+  // write failed). Remove the points before cancelling — a cancelled order leaves the
+  // live list. If that fails, staff can cancel anyway and retry from History.
+  const handleCancel = async () => {
+    if (collecting) return;
+    if (needsPointsReversed(order)) {
+      setCollecting(true);
+      try {
+        await reverseOrderPoints(order);
+      } catch (error) {
+        setReverseError(error instanceof Error ? error.message : String(error));
+        return;
+      } finally {
+        setCollecting(false);
+      }
+    }
+    await cancelOrder();
+  };
+
+  const handleReverseFromHistory = async () => {
+    setCollecting(true);
+    setHistoryCollectError(null);
+    try {
+      await reverseOrderPoints(order);
+    } catch (error) {
+      setHistoryCollectError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setCollecting(false);
     }
   };
 
@@ -215,6 +295,22 @@ export default function OrderCard({
           <Text className="font-semibold text-gray-800 text-base">
             Ordered At: {formatOrderDate(order.createdAt)}
           </Text>
+          {loyalty?.memberId ? (
+            <View className="mt-1 self-start rounded-md bg-amber-500 px-2 py-1">
+              <Text className="text-xs font-bold text-white">
+                REWARDS · {loyalty.memberName || "Member"}
+                {loyalty.reversedAt != null
+                  ? " · points removed"
+                  : loyalty.collectedAt != null
+                    ? order.status === OrderStatus.Cancelled
+                      ? ` · +${loyalty.pointsEarned ?? 0} pts not removed`
+                      : ` · +${loyalty.pointsEarned ?? 0} pts`
+                    : order.status === OrderStatus.Completed
+                      ? " · points not collected"
+                      : ""}
+              </Text>
+            </View>
+          ) : null}
           {scheduled && scheduledAt && (
             <View className="mt-1 self-start rounded-md bg-orange-500 px-2 py-1">
               <Text className="text-xs font-bold text-white">
@@ -257,10 +353,13 @@ export default function OrderCard({
           </Animated.View>
           {showOrderActions && (
             <TouchableOpacity
-              className="bg-green-500 px-4 py-2 rounded-lg"
+              className={`bg-green-500 px-4 py-2 rounded-lg ${collecting ? "opacity-60" : ""}`}
+              disabled={collecting}
               onPress={handleComplete}
             >
-              <Text className="text-sm font-bold text-white">Complete</Text>
+              <Text className="text-sm font-bold text-white">
+                {collecting ? "Collecting…" : "Complete"}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -431,7 +530,8 @@ export default function OrderCard({
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className="flex-1 bg-red-500 py-3 rounded-md"
+                className={`flex-1 bg-red-500 py-3 rounded-md ${collecting ? "opacity-60" : ""}`}
+                disabled={collecting}
                 onPress={handleCancel}
               >
                 <Text className="text-center text-white font-semibold text-sm">
@@ -439,11 +539,12 @@ export default function OrderCard({
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className="flex-1 bg-green-500 py-3 rounded-md"
+                className={`flex-1 bg-green-500 py-3 rounded-md ${collecting ? "opacity-60" : ""}`}
+                disabled={collecting}
                 onPress={handleComplete}
               >
                 <Text className="text-center text-white font-semibold text-sm">
-                  Complete
+                  {collecting ? "Collecting…" : "Complete"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -461,6 +562,66 @@ export default function OrderCard({
           )}
         </View>
       )}
+
+      {canCollectFromHistory && (
+        <View className="mt-3">
+          <TouchableOpacity
+            className={`bg-amber-500 py-3 rounded-md ${collecting ? "opacity-60" : ""}`}
+            disabled={collecting}
+            onPress={handleCollectFromHistory}
+          >
+            <Text className="text-center text-white font-semibold text-sm">
+              {collecting ? "Collecting…" : "Collect rewards points"}
+            </Text>
+          </TouchableOpacity>
+          {historyCollectError ? (
+            <Text className="mt-2 text-sm text-red-600">{historyCollectError}</Text>
+          ) : null}
+        </View>
+      )}
+
+      {canReverseFromHistory && (
+        <View className="mt-3">
+          <TouchableOpacity
+            className={`bg-red-500 py-3 rounded-md ${collecting ? "opacity-60" : ""}`}
+            disabled={collecting}
+            onPress={handleReverseFromHistory}
+          >
+            <Text className="text-center text-white font-semibold text-sm">
+              {collecting ? "Removing…" : "Remove rewards points"}
+            </Text>
+          </TouchableOpacity>
+          {historyCollectError ? (
+            <Text className="mt-2 text-sm text-red-600">{historyCollectError}</Text>
+          ) : null}
+        </View>
+      )}
+
+      <ConfirmModal
+        visible={reverseError != null}
+        message={`This order's rewards points couldn't be removed: ${reverseError ?? ""}\n\nCancel the order anyway? You can remove the points later from Order History.`}
+        confirmLabel="Cancel anyway"
+        cancelLabel="Not now"
+        onConfirm={() => {
+          setReverseError(null);
+          void markReversePending(order)
+            .catch((error) => console.error("Failed to flag rewards reverse:", error))
+            .finally(() => void cancelOrder());
+        }}
+        onCancel={() => setReverseError(null)}
+      />
+
+      <ConfirmModal
+        visible={collectError != null}
+        message={`Rewards points weren't collected: ${collectError ?? ""}\n\nComplete the order anyway? You can collect the points later from Order History.`}
+        confirmLabel="Complete anyway"
+        cancelLabel="Not now"
+        onConfirm={() => {
+          setCollectError(null);
+          void completeOrder();
+        }}
+        onCancel={() => setCollectError(null)}
+      />
 
       <ExtraChargeModal
         visible={extraChargeVisible}

@@ -5,6 +5,8 @@ type ConfirmModalProps = {
   message: string;
   onConfirm: () => void;
   onCancel: () => void;
+  confirmLabel?: string;
+  cancelLabel?: string;
 };
 
 export default function ConfirmModal({
@@ -12,6 +14,8 @@ export default function ConfirmModal({
   message,
   onConfirm,
   onCancel,
+  confirmLabel = "Yes",
+  cancelLabel = "No",
 }: ConfirmModalProps) {
   return (
     <Modal
@@ -36,13 +40,13 @@ export default function ConfirmModal({
               className="flex-1 py-3 rounded-md items-center bg-gray-200"
               onPress={onCancel}
             >
-              <Text className="font-semibold text-gray-700">No</Text>
+              <Text className="font-semibold text-gray-700">{cancelLabel}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               className="flex-1 py-3 rounded-md items-center bg-emerald-500"
               onPress={onConfirm}
             >
-              <Text className="font-semibold text-white">Yes</Text>
+              <Text className="font-semibold text-white">{confirmLabel}</Text>
             </TouchableOpacity>
           </View>
         </Pressable>

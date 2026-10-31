@@ -45,6 +45,15 @@ function mapOrderDoc(id: string, data: DocumentData): Order {
             scheduledAt: toDate(data.fulfillment.scheduledAt),
           }
         : data.fulfillment,
+    loyalty: data.loyalty
+      ? {
+          ...data.loyalty,
+          collectedAt:
+            data.loyalty.collectedAt != null ? toDate(data.loyalty.collectedAt) : undefined,
+          reversedAt:
+            data.loyalty.reversedAt != null ? toDate(data.loyalty.reversedAt) : undefined,
+        }
+      : undefined,
   } as Order;
 }
 
