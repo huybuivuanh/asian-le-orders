@@ -52,6 +52,8 @@ function mapOrderDoc(id: string, data: DocumentData): Order {
             data.loyalty.collectedAt != null ? toDate(data.loyalty.collectedAt) : undefined,
           reversedAt:
             data.loyalty.reversedAt != null ? toDate(data.loyalty.reversedAt) : undefined,
+          redeemedAt:
+            data.loyalty.redeemedAt != null ? toDate(data.loyalty.redeemedAt) : undefined,
         }
       : undefined,
   } as Order;
@@ -153,7 +155,11 @@ export async function addExtraCharge(order: Order, name: string, price: number) 
   };
   const orderItems = [...order.orderItems, newItem];
   const subTotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const taxBreakDown = calculateTaxBreakdown(subTotal);
+  // Keep any rewards-points discount — it's a fixed dollar amount, not a percentage.
+  const taxBreakDown = calculateTaxBreakdown(
+    subTotal,
+    order.taxBreakDown.discount?.discountValue ?? 0,
+  );
 
   await updateDoc(doc(db, "orders", order.id), { orderItems, taxBreakDown });
 }

@@ -1,5 +1,6 @@
 import type {
   DayOfWeek,
+  DiscountType,
   KitchenType,
   OrderStatus,
   TakeOutFulfillmentKind,
@@ -163,8 +164,18 @@ declare global {
     kitchenType: KitchenType;
   }
 
+  /** Money off before tax (POS shape, so receipts print it). On online orders it comes
+   * from rewards points the customer chose at checkout — see OrderLoyalty.pointsToRedeem. */
+  interface OrderDiscount {
+    discountType: DiscountType;
+    discountValue: number;
+    discountAmount: number;
+    taxableSubtotal: number;
+  }
+
   interface OrderTaxBreakDown {
     subTotal: number;
+    discount?: OrderDiscount;
     pst: number;
     gst: number;
     total: number;
@@ -181,6 +192,15 @@ declare global {
     memberName: string;
     pointsEarned?: number;
     collectedAt?: Date;
+    // Points the customer chose to use at checkout for taxBreakDown.discount. Not taken
+    // from their balance yet; taking them on Complete sets pointsRedeemed/redeemedAmount.
+    pointsToRedeem?: number;
+    pointsRedeemed?: number;
+    redeemedAmount?: number;
+    redeemedAt?: Date;
+    // Not enough points when settling a paid-at-discount order from History: staff
+    // stopped trying to take them so the earned points could still be collected.
+    redeemWaived?: boolean;
     // Set when a cancelled order's collected points were removed (reverseOrder), or
     // reversePending if staff cancelled anyway after removing them failed.
     reversedAt?: Date;

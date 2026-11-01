@@ -9,7 +9,12 @@ import {
   markReversePending,
   needsPointsCollected,
   needsPointsReversed,
+  needsRewardsSettled,
+  NotEnoughPointsError,
+  removeRewardsDiscount,
   reverseOrderPoints,
+  settleOrderRewards,
+  waiveRedeem,
 } from "@/services/rewards";
 import { OrderStatus, TakeOutFulfillmentKind } from "@/types/enum";
 import {
@@ -21,6 +26,7 @@ import {
 import { cssInterop } from "nativewind";
 import { useEffect, useState } from "react";
 import { Animated, Platform, Text, TouchableOpacity, View } from "react-native";
+import { calculateTaxBreakdown } from "@/utils/orderPricing";
 import ConfirmModal from "./ConfirmModal";
 import ExtraChargeModal from "./ExtraChargeModal";
 
@@ -39,6 +45,26 @@ type OrderCardProps = {
   defaultReadyMinutes?: number;
 };
 
+/** Rewards badge status: what's been done with the member's points on this order. */
+function rewardsBadgeSuffix(order: Order): string {
+  const l = order.loyalty;
+  if (!l) return "";
+  if (l.reversedAt != null) return " · points removed";
+  const parts: string[] = [];
+  const cancelled = order.status === OrderStatus.Cancelled;
+  if (l.pointsRedeemed != null) {
+    parts.push(cancelled ? `${l.pointsRedeemed} used pts not returned` : `−${l.pointsRedeemed} pts used`);
+  } else if ((l.pointsToRedeem ?? 0) > 0 && !cancelled) {
+    parts.push(l.redeemWaived ? "used pts skipped" : `using ${l.pointsToRedeem} pts`);
+  }
+  if (l.collectedAt != null) {
+    parts.push(cancelled ? `+${l.pointsEarned ?? 0} pts not removed` : `+${l.pointsEarned ?? 0} pts`);
+  } else if (order.status === OrderStatus.Completed) {
+    parts.push("points not collected");
+  }
+  return parts.map((p) => ` · ${p}`).join("");
+}
+
 export default function OrderCard({
   order,
   showActions = true,
@@ -51,6 +77,10 @@ export default function OrderCard({
   const [collectError, setCollectError] = useState<string | null>(null);
   const [historyCollectError, setHistoryCollectError] = useState<string | null>(null);
   const [reverseError, setReverseError] = useState<string | null>(null);
+  // Member no longer has the points they used at checkout: on a live order staff remove
+  // the discount; from History (already paid) they skip taking the points.
+  const [notEnoughPoints, setNotEnoughPoints] = useState<string | null>(null);
+  const [historyNotEnoughPoints, setHistoryNotEnoughPoints] = useState<string | null>(null);
 
   const scheduled = fulfillmentIsScheduled(order);
   const scheduledAt = fulfillmentScheduledAt(order);
@@ -166,16 +196,20 @@ export default function OrderCard({
     }
   };
 
-  // Collect the member's points first: a completed order leaves the live list. If
-  // collecting fails, staff choose to complete anyway and collect later from History.
+  const errorText = (error: unknown) => (error instanceof Error ? error.message : String(error));
+
+  // Settle rewards first — take the points used at checkout, then collect the earned
+  // points — because a completed order leaves the live list. If that fails, staff choose
+  // to complete anyway and finish it later from History.
   const handleComplete = async () => {
     if (collecting) return;
-    if (needsPointsCollected(order)) {
+    if (needsRewardsSettled(order)) {
       setCollecting(true);
       try {
-        await collectOrderPoints(order);
+        await settleOrderRewards(order);
       } catch (error) {
-        setCollectError(error instanceof Error ? error.message : String(error));
+        if (error instanceof NotEnoughPointsError) setNotEnoughPoints(error.message);
+        else setCollectError(errorText(error));
         return;
       } finally {
         setCollecting(false);
@@ -184,21 +218,54 @@ export default function OrderCard({
     await completeOrder();
   };
 
+  // Not enough points at pickup: charge full price (discount removed), still earn points.
+  const handleRemoveDiscountAndComplete = async () => {
+    setNotEnoughPoints(null);
+    setCollecting(true);
+    try {
+      const updated = await removeRewardsDiscount(order);
+      if (needsPointsCollected(updated)) await collectOrderPoints(updated);
+    } catch (error) {
+      setCollectError(errorText(error));
+      return;
+    } finally {
+      setCollecting(false);
+    }
+    await completeOrder();
+  };
+
   const handleCollectFromHistory = async () => {
     setCollecting(true);
     setHistoryCollectError(null);
     try {
-      await collectOrderPoints(order);
+      await settleOrderRewards(order);
     } catch (error) {
-      setHistoryCollectError(error instanceof Error ? error.message : String(error));
+      if (error instanceof NotEnoughPointsError) setHistoryNotEnoughPoints(error.message);
+      else setHistoryCollectError(errorText(error));
+    } finally {
+      setCollecting(false);
+    }
+  };
+
+  // Already completed (paid at the discounted price): skip taking the points.
+  const handleWaiveAndCollect = async () => {
+    setHistoryNotEnoughPoints(null);
+    setCollecting(true);
+    setHistoryCollectError(null);
+    try {
+      const updated = await waiveRedeem(order);
+      if (needsPointsCollected(updated)) await collectOrderPoints(updated);
+    } catch (error) {
+      setHistoryCollectError(errorText(error));
     } finally {
       setCollecting(false);
     }
   };
 
   const loyalty = order.loyalty;
+  const fullPriceTotal = calculateTaxBreakdown(order.taxBreakDown.subTotal).total;
   const canCollectFromHistory =
-    !showActions && order.status === OrderStatus.Completed && needsPointsCollected(order);
+    !showActions && order.status === OrderStatus.Completed && needsRewardsSettled(order);
   const canReverseFromHistory =
     !showActions && order.status === OrderStatus.Cancelled && needsPointsReversed(order);
 
@@ -299,15 +366,7 @@ export default function OrderCard({
             <View className="mt-1 self-start rounded-md bg-amber-500 px-2 py-1">
               <Text className="text-xs font-bold text-white">
                 REWARDS · {loyalty.memberName || "Member"}
-                {loyalty.reversedAt != null
-                  ? " · points removed"
-                  : loyalty.collectedAt != null
-                    ? order.status === OrderStatus.Cancelled
-                      ? ` · +${loyalty.pointsEarned ?? 0} pts not removed`
-                      : ` · +${loyalty.pointsEarned ?? 0} pts`
-                    : order.status === OrderStatus.Completed
-                      ? " · points not collected"
-                      : ""}
+                {rewardsBadgeSuffix(order)}
               </Text>
             </View>
           ) : null}
@@ -497,6 +556,26 @@ export default function OrderCard({
                 ${order.taxBreakDown.subTotal.toFixed(2)}
               </Text>
             </View>
+            {order.taxBreakDown.discount ? (
+              <>
+                <View className="flex-row justify-between mb-1">
+                  <Text className="text-base font-semibold text-amber-700">
+                    {order.loyalty?.pointsToRedeem
+                      ? `Rewards discount (${order.loyalty.pointsToRedeem} pts)`
+                      : "Discount"}
+                  </Text>
+                  <Text className="text-base font-semibold text-amber-700">
+                    −${order.taxBreakDown.discount.discountAmount.toFixed(2)}
+                  </Text>
+                </View>
+                <View className="flex-row justify-between mb-1">
+                  <Text className="text-base text-gray-700">Subtotal after discount</Text>
+                  <Text className="text-base text-gray-700">
+                    ${order.taxBreakDown.discount.taxableSubtotal.toFixed(2)}
+                  </Text>
+                </View>
+              </>
+            ) : null}
             <View className="flex-row justify-between mb-1">
               <Text className="text-base text-gray-700">PST (6%)</Text>
               <Text className="text-base text-gray-700">
@@ -612,8 +691,26 @@ export default function OrderCard({
       />
 
       <ConfirmModal
+        visible={notEnoughPoints != null}
+        message={`${loyalty?.memberName || "The member"} no longer has the ${loyalty?.pointsToRedeem ?? ""} points used for this order's discount (${notEnoughPoints ?? ""}).\n\nRemove the $${(order.taxBreakDown.discount?.discountAmount ?? 0).toFixed(2)} rewards discount and complete? New total: $${fullPriceTotal.toFixed(2)} — tell the customer before charging. They still earn points on the order.`}
+        confirmLabel="Remove discount"
+        cancelLabel="Not now"
+        onConfirm={() => void handleRemoveDiscountAndComplete()}
+        onCancel={() => setNotEnoughPoints(null)}
+      />
+
+      <ConfirmModal
+        visible={historyNotEnoughPoints != null}
+        message={`${loyalty?.memberName || "The member"} no longer has the ${loyalty?.pointsToRedeem ?? ""} points used for this order's discount (${historyNotEnoughPoints ?? ""}). The order was already completed at the discounted price.\n\nSkip taking the points and just collect the points earned on this order?`}
+        confirmLabel="Skip & collect"
+        cancelLabel="Not now"
+        onConfirm={() => void handleWaiveAndCollect()}
+        onCancel={() => setHistoryNotEnoughPoints(null)}
+      />
+
+      <ConfirmModal
         visible={collectError != null}
-        message={`Rewards points weren't collected: ${collectError ?? ""}\n\nComplete the order anyway? You can collect the points later from Order History.`}
+        message={`Rewards points weren't processed: ${collectError ?? ""}\n\nComplete the order anyway? You can finish the rewards later from Order History.`}
         confirmLabel="Complete anyway"
         cancelLabel="Not now"
         onConfirm={() => {
