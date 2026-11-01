@@ -16,7 +16,7 @@ import {
   settleOrderRewards,
   waiveRedeem,
 } from "@/services/rewards";
-import { OrderStatus, TakeOutFulfillmentKind } from "@/types/enum";
+import { DiscountType, OrderStatus, TakeOutFulfillmentKind } from "@/types/enum";
 import {
   formatOrderDate,
   formatPhone,
@@ -559,17 +559,17 @@ export default function OrderCard({
             {order.taxBreakDown.discount ? (
               <>
                 <View className="flex-row justify-between mb-1">
-                  <Text className="text-base font-semibold text-amber-700">
-                    {order.loyalty?.pointsToRedeem
-                      ? `Rewards discount (${order.loyalty.pointsToRedeem} pts)`
-                      : "Discount"}
+                  <Text className="text-base text-gray-600">
+                    {order.taxBreakDown.discount.discountType === DiscountType.Percent
+                      ? `Discount (${order.taxBreakDown.discount.discountValue}%)`
+                      : `Discount ($${order.taxBreakDown.discount.discountValue.toFixed(2)})`}
                   </Text>
-                  <Text className="text-base font-semibold text-amber-700">
-                    −${order.taxBreakDown.discount.discountAmount.toFixed(2)}
+                  <Text className="text-base text-gray-700">
+                    -${order.taxBreakDown.discount.discountAmount.toFixed(2)}
                   </Text>
                 </View>
                 <View className="flex-row justify-between mb-1">
-                  <Text className="text-base text-gray-700">Subtotal after discount</Text>
+                  <Text className="text-base text-gray-700">Taxable Subtotal</Text>
                   <Text className="text-base text-gray-700">
                     ${order.taxBreakDown.discount.taxableSubtotal.toFixed(2)}
                   </Text>
