@@ -59,7 +59,7 @@ export default function OrderHistoryScreen() {
             <View className="py-4">
               <ActivityIndicator />
             </View>
-          ) : null
+          ) : undefined
         }
       />
     </SafeAreaViewWrapper>

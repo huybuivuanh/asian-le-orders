@@ -21,6 +21,8 @@ There is no test runner configured (no `test` script, no Jest) — type-checking
 
 Firebase config is read from `EXPO_PUBLIC_FIREBASE_*` env vars in `.env` (gitignored).
 
+Expo SDK 58 (React Native 0.88). `.npmrc` sets `legacy-peer-deps=true` because `@react-native-community/datetimepicker`'s optional `react-native-windows` peer pins an older react-native; keep it or `npm install` / EAS builds fail. Side effect: npm no longer auto-installs peer deps, so required peers are listed explicitly in devDependencies (`react-refresh` pinned to the `^0.14.2` that expo/react-native use — without it bundling fails with "Cannot find module 'react-refresh/babel'"; `prettier` for `prettier-plugin-tailwindcss`). `patches/react-native+0.88.1.patch` (applied by `postinstall`) guards the iOS `BlobModule` handler against the `Updates.reloadAsync()` crash; re-create it when bumping react-native. On Windows, `npx patch-package` needs `core.autocrlf=false` and `core.longpaths=true` for git, or it crashes.
+
 ## Architecture
 
 ### Routing and auth gating

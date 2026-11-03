@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native/Libraries/AppDelegate/RCTAppSetupUtils.mm b/node_modules/react-native/Libraries/AppDelegate/RCTAppSetupUtils.mm
-index fabfff3..49f39ce 100644
+index ae3ae25..c83354b 100644
 --- a/node_modules/react-native/Libraries/AppDelegate/RCTAppSetupUtils.mm
 +++ b/node_modules/react-native/Libraries/AppDelegate/RCTAppSetupUtils.mm
-@@ -103,12 +103,19 @@ id<RCTTurboModule> RCTAppSetupDefaultModuleFromClass(Class moduleClass, id<RCTDe
+@@ -80,12 +80,19 @@ id<RCTTurboModule> RCTAppSetupDefaultModuleFromClass(Class moduleClass, id<RCTDe
          initWithHandlersProvider:^NSArray<id<RCTURLRequestHandler>> *(RCTModuleRegistry *moduleRegistry) {
            NSArray *URLRequestHandlerModules =
                extractModuleConformingToProtocol(moduleRegistry, @protocol(RCTURLRequestHandler));

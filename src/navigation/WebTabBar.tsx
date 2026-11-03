@@ -6,12 +6,12 @@ import Wordmark from "@/components/ui/Wordmark";
 import { useIsWide } from "@/hooks/useIsWide";
 import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
-import type { BottomTabBarProps } from "expo-router/js-tabs";
+import type { BottomTabBarProps } from "expo-router/tabs";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { TABS } from "./tabs";
 
-export function WebTabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
+export function WebTabBar({ state, descriptors, navigateToTab, insets }: BottomTabBarProps) {
   const wide = useIsWide();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -22,17 +22,7 @@ export function WebTabBar({ state, descriptors, navigation, insets }: BottomTabB
     focused: state.index === i,
   }));
 
-  // Same press handling as the default tab bar.
-  const goTo = (tab: (typeof tabs)[number]) => {
-    const event = navigation.emit({
-      type: "tabPress",
-      target: tab.route.key,
-      canPreventDefault: true,
-    });
-    if (!tab.focused && !event.defaultPrevented) {
-      navigation.navigate(tab.route.name, tab.route.params);
-    }
-  };
+  const goTo = (tab: (typeof tabs)[number]) => navigateToTab(tab.route.key);
 
   const showMenu = menuOpen && !wide;
 

@@ -29,7 +29,7 @@ const WEB_ACTIVITY_EVENTS = [
  *   reloadAsync() there tears down native modules while Firestore is
  *   auto-reconnecting and crashes in RCTNetworking (a transiently-nil
  *   BlobModule in React Native's URL-handler list — see
- *   patches/react-native+0.86.3.patch). A parked device instead reloads a
+ *   patches/react-native+0.88.1.patch). A parked device instead reloads a
  *   timeout after it's reopened, via the safe idle path.
  * - Web: window.location.replace("/") after DOM-activity-idle, on becoming
  *   visible again after being hidden at least the timeout, and immediately on

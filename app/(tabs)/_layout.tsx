@@ -3,8 +3,8 @@ import { useForceUpdate } from "@/hooks/useForceUpdate";
 import { TABS } from "@/navigation/tabs";
 import { WebTabBar } from "@/navigation/WebTabBar";
 import { colors } from "@/theme/colors";
-import { Tabs } from "expo-router";
-import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { NativeTabs } from "expo-router/native-tabs";
+import { Tabs } from "expo-router/tabs";
 import { Platform } from "react-native";
 
 export default function TabLayout() {
