@@ -8,6 +8,7 @@ import {
 } from "react-native-safe-area-context";
 
 import NewOrderAlertOverlay from "@/components/NewOrderAlertOverlay";
+import OfflineOverlay from "@/components/OfflineOverlay";
 import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useInactivityReload } from "@/hooks/useInactivityReload";
@@ -52,6 +53,7 @@ function RootNavigator() {
         </Stack.Protected>
       </Stack>
       {user && <NewOrderAlertOverlay />}
+      <OfflineOverlay />
     </View>
   );
 }
