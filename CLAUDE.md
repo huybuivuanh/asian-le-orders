@@ -25,7 +25,7 @@ Firebase config is read from `EXPO_PUBLIC_FIREBASE_*` env vars in `.env` (gitign
 
 ### Routing and auth gating
 
-`app/_layout.tsx` wraps everything in `AuthProvider` (`src/contexts/AuthContext.tsx`, Firebase Auth) and uses `Stack.Protected` to route to the `(tabs)` group when signed in or to `login` otherwise. `app/(tabs)/_layout.tsx` defines four tabs: Live Orders (`index`), Order History (`history`), Menu, Settings.
+`app/_layout.tsx` wraps everything in `AuthProvider` (`src/contexts/AuthContext.tsx`, Firebase Auth) and uses `Stack.Protected` to route to the `(tabs)` group when signed in or to `login` otherwise. `app/(tabs)/_layout.tsx` defines four tabs: Live Orders (`index`), Order History (`history`), Menu, Settings. The tab list lives in `src/navigation/tabs.ts` (label + SF Symbol / Material / Ionicons icon). iOS/Android use `NativeTabs` (real native tab bar); web uses JS `Tabs` with `src/navigation/WebTabBar.tsx` as a top header (tabs on wide screens, hamburger menu under 768px via `useIsWide`). Same approach as the `asian-le-rewards` repo.
 
 ### Layered data flow: services → hooks → UI
 
