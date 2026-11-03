@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import Button from "./ui/Button";
+import ModalCard from "./ui/ModalCard";
 
 const STEP = 1;
 const MIN = 0;
@@ -29,76 +31,74 @@ export default function PrepTimeModal({
   }
 
   return (
-    <Modal
+    <ModalCard
       visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onCancel}
+      onClose={onCancel}
+      title="Prep time"
+      message="Default ready time for new orders, in minutes."
     >
-      <Pressable
-        className="flex-1 items-center justify-center bg-black/50 px-6"
-        onPress={onCancel}
-      >
-        <Pressable
-          className="w-full max-w-sm rounded-xl bg-white p-5"
-          onPress={() => {}}
-        >
-          <Text className="text-base font-semibold text-gray-800 text-center mb-4">
-            Set Prep Time
-          </Text>
+      <View className="mb-4 flex-row items-center justify-center gap-4">
+        <StepButton
+          label="−"
+          disabled={value <= MIN}
+          onPress={() => setValue((prev) => Math.max(MIN, prev - STEP))}
+        />
+        <Text className="w-16 text-center text-2xl font-semibold text-foreground">
+          {value}
+        </Text>
+        <StepButton
+          label="+"
+          disabled={value >= MAX}
+          onPress={() => setValue((prev) => Math.min(MAX, prev + STEP))}
+        />
+      </View>
 
-          <View className="flex-row items-center justify-center gap-4 mb-4">
-            <TouchableOpacity
-              className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center"
-              disabled={value <= MIN}
-              onPress={() => setValue((prev) => Math.max(MIN, prev - STEP))}
+      <View className="mb-6 flex-row justify-between gap-2">
+        {QUICK_OPTIONS.map((option) => (
+          <Pressable
+            key={option}
+            className={`flex-1 items-center rounded-lg border py-2 ${
+              value === option
+                ? "border-foreground bg-foreground"
+                : "border-foreground/15 bg-white"
+            }`}
+            onPress={() => setValue(option)}
+          >
+            <Text
+              className={`text-sm font-medium ${value === option ? "text-white" : "text-foreground"}`}
             >
-              <Text className="text-lg font-bold text-gray-700">−</Text>
-            </TouchableOpacity>
-            <Text className="text-2xl font-bold text-gray-900 w-16 text-center">
-              {value}
+              {option}
             </Text>
-            <TouchableOpacity
-              className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center"
-              disabled={value >= MAX}
-              onPress={() => setValue((prev) => Math.min(MAX, prev + STEP))}
-            >
-              <Text className="text-lg font-bold text-gray-700">+</Text>
-            </TouchableOpacity>
-          </View>
+          </Pressable>
+        ))}
+      </View>
 
-          <View className="flex-row justify-between gap-2 mb-4">
-            {QUICK_OPTIONS.map((option) => (
-              <TouchableOpacity
-                key={option}
-                className={`flex-1 py-2 rounded-md items-center ${value === option ? "bg-sky-600" : "bg-gray-200"}`}
-                onPress={() => setValue(option)}
-              >
-                <Text
-                  className={`font-semibold ${value === option ? "text-white" : "text-gray-700"}`}
-                >
-                  {option}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+      <View className="flex-row justify-end gap-2">
+        <Button label="Cancel" variant="secondary" size="sm" onPress={onCancel} />
+        <Button label="Save" size="sm" onPress={() => onSubmit(value)} />
+      </View>
+    </ModalCard>
+  );
+}
 
-          <View className="flex-row gap-2">
-            <TouchableOpacity
-              className="flex-1 py-3 rounded-md items-center bg-gray-200"
-              onPress={onCancel}
-            >
-              <Text className="font-semibold text-gray-700">Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="flex-1 py-3 rounded-md items-center bg-emerald-500"
-              onPress={() => onSubmit(value)}
-            >
-              <Text className="font-semibold text-white">Submit</Text>
-            </TouchableOpacity>
-          </View>
-        </Pressable>
-      </Pressable>
-    </Modal>
+function StepButton({
+  label,
+  disabled,
+  onPress,
+}: {
+  label: string;
+  disabled: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      className={`h-10 w-10 items-center justify-center rounded-full border border-foreground/15 ${
+        disabled ? "opacity-40" : ""
+      }`}
+      disabled={disabled}
+      onPress={onPress}
+    >
+      <Text className="text-lg font-semibold text-foreground">{label}</Text>
+    </Pressable>
   );
 }

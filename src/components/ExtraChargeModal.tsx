@@ -1,12 +1,11 @@
 import { useState } from "react";
-import {
-  Modal,
-  Pressable,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Text, TextInput, View } from "react-native";
+import { colors } from "@/theme/colors";
+import Button from "./ui/Button";
+import ModalCard from "./ui/ModalCard";
+
+const INPUT_CLASS =
+  "rounded-lg border border-foreground/20 bg-white px-3 py-2.5 text-base text-foreground";
 
 type ExtraChargeModalProps = {
   visible: boolean;
@@ -60,64 +59,30 @@ export default function ExtraChargeModal({
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onCancel}
-    >
-      <Pressable
-        className="flex-1 items-center justify-center bg-black/50 px-6"
-        onPress={onCancel}
-      >
-        <Pressable
-          className="w-full max-w-sm rounded-xl bg-white p-5"
-          onPress={() => {}}
-        >
-          <Text className="text-base font-semibold text-gray-800 text-center mb-4">
-            Add Extra Charge
-          </Text>
+    <ModalCard visible={visible} onClose={onCancel} title="Add extra charge">
+      <Text className="mb-1 text-sm font-medium text-foreground">Name</Text>
+      <TextInput
+        className={`mb-4 ${INPUT_CLASS}`}
+        placeholder="e.g. Extra Sauce"
+        placeholderTextColor={colors.placeholder}
+        value={name}
+        onChangeText={setName}
+      />
 
-          <Text className="text-sm font-semibold text-gray-700 mb-1">
-            Name
-          </Text>
-          <TextInput
-            className="border border-gray-300 rounded-md px-3 py-2 mb-3 text-base text-gray-900"
-            placeholder="e.g. Extra Sauce"
-            placeholderTextColor="#9ca3af"
-            value={name}
-            onChangeText={setName}
-          />
+      <Text className="mb-1 text-sm font-medium text-foreground">Price</Text>
+      <TextInput
+        className={`mb-6 ${INPUT_CLASS}`}
+        placeholder="0.00"
+        placeholderTextColor={colors.placeholder}
+        value={price}
+        onChangeText={handlePriceChange}
+        keyboardType="decimal-pad"
+      />
 
-          <Text className="text-sm font-semibold text-gray-700 mb-1">
-            Price
-          </Text>
-          <TextInput
-            className="border border-gray-300 rounded-md px-3 py-2 mb-4 text-base text-gray-900"
-            placeholder="0.00"
-            placeholderTextColor="#9ca3af"
-            value={price}
-            onChangeText={handlePriceChange}
-            keyboardType="decimal-pad"
-          />
-
-          <View className="flex-row gap-2">
-            <TouchableOpacity
-              className="flex-1 py-3 rounded-md items-center bg-gray-200"
-              onPress={onCancel}
-            >
-              <Text className="font-semibold text-gray-700">Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className={`flex-1 py-3 rounded-md items-center ${isValid ? "bg-emerald-500" : "bg-emerald-300"}`}
-              onPress={handleSubmit}
-              disabled={!isValid}
-            >
-              <Text className="font-semibold text-white">Submit</Text>
-            </TouchableOpacity>
-          </View>
-        </Pressable>
-      </Pressable>
-    </Modal>
+      <View className="flex-row justify-end gap-2">
+        <Button label="Cancel" variant="secondary" size="sm" onPress={onCancel} />
+        <Button label="Add charge" size="sm" onPress={handleSubmit} disabled={!isValid} />
+      </View>
+    </ModalCard>
   );
 }

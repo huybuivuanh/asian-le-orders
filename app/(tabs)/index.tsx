@@ -9,7 +9,9 @@ import {
   updateStorePausedUntil,
   updateStoreWaitTime,
 } from "@/services/storeSettings";
+import { colors } from "@/theme/colors";
 import { formatPausedUntil, isStorePaused } from "@/utils/storeSettingsHelpers";
+import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -76,12 +78,12 @@ export default function LiveOrdersScreen() {
     <SafeAreaViewWrapper includeBottomInset={false}>
       <View className="flex-row gap-2 px-4 pt-4">
         <TouchableOpacity
-          className={`flex-row items-center gap-1.5 px-4 py-2 rounded-full ${isPaused ? "bg-gray-400" : "bg-emerald-500"}`}
+          className={`flex-row items-center gap-1.5 rounded-full px-4 py-2 ${isPaused ? "bg-neutral-400" : "bg-green-600"}`}
           onPress={() =>
             isPaused ? setPausedInfoVisible(true) : setPauseModalVisible(true)
           }
         >
-          <Text className="text-white text-xs">●</Text>
+          <Ionicons name={isPaused ? "pause" : "ellipse"} size={10} color={colors.white} />
           <Text className="text-white font-semibold text-sm">
             {isPaused && settings.pausedUntil
               ? `Paused ${formatPausedUntil(settings.pausedUntil)}`
@@ -89,11 +91,11 @@ export default function LiveOrdersScreen() {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          className="flex-row items-center gap-1.5 px-4 py-2 rounded-full bg-sky-600"
+          className="flex-row items-center gap-1.5 rounded-full bg-ink px-4 py-2"
           onPress={() => setPrepTimeVisible(true)}
         >
-          <Text className="text-white text-xs">⏱</Text>
-          <Text className="text-white font-semibold text-sm">
+          <Ionicons name="time-outline" size={16} color={colors.gold} />
+          <Text className="text-sm font-semibold text-on-ink">
             {settings.waitTime} min
           </Text>
         </TouchableOpacity>
@@ -129,11 +131,11 @@ export default function LiveOrdersScreen() {
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator />
+          <ActivityIndicator color={colors.foreground} />
         </View>
       ) : orders.length === 0 ? (
         <View className="flex-1 items-center justify-center">
-          <Text className="text-base text-gray-500">No live orders</Text>
+          <Text className="text-base text-foreground/60">No live orders</Text>
         </View>
       ) : (
         <FlatList

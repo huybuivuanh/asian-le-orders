@@ -1,17 +1,22 @@
 import { FirebaseError } from "firebase/app";
 import { useState } from "react";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   Text,
   TextInput,
   View,
 } from "react-native";
 
 import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
+import Button from "@/components/ui/Button";
+import Wordmark from "@/components/ui/Wordmark";
 import { useAuth } from "@/contexts/AuthContext";
+import { colors } from "@/theme/colors";
+
+// Same input style as the website admin's login.
+const INPUT_CLASS =
+  "rounded-lg border border-foreground/20 bg-white px-3 py-2.5 text-base text-foreground";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof FirebaseError) {
@@ -54,23 +59,28 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaViewWrapper className="bg-white">
+    <SafeAreaViewWrapper>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1"
       >
-        <View className="flex-1 justify-center px-6">
-          <Text className="mb-1 text-3xl font-bold text-gray-900">
-            Welcome back
-          </Text>
-          <Text className="mb-8 text-base text-gray-500">
-            Sign in to continue
-          </Text>
+        <View className="w-full max-w-sm flex-1 justify-center self-center px-4">
+          <View className="mb-6 items-center gap-2">
+            <Wordmark tone="light" size="lg" />
+            <Text className="text-sm text-foreground/60">Sign in to continue</Text>
+          </View>
+
+          {error ? (
+            <View
+              className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2"
+              accessibilityRole="alert"
+            >
+              <Text className="text-sm text-red-600">{error}</Text>
+            </View>
+          ) : null}
 
           <View className="mb-4">
-            <Text className="mb-1.5 text-sm font-medium text-gray-700">
-              Email
-            </Text>
+            <Text className="mb-1 text-sm font-medium text-foreground">Email</Text>
             <TextInput
               value={email}
               onChangeText={setEmail}
@@ -79,46 +89,30 @@ export default function LoginScreen() {
               keyboardType="email-address"
               textContentType="emailAddress"
               placeholder="you@example.com"
-              placeholderTextColor="#9CA3AF"
-              className="rounded-lg border border-gray-300 px-4 py-3 text-base text-gray-900"
+              placeholderTextColor={colors.placeholder}
+              className={INPUT_CLASS}
             />
           </View>
 
-          <View className="mb-2">
-            <Text className="mb-1.5 text-sm font-medium text-gray-700">
-              Password
-            </Text>
+          <View className="mb-6">
+            <Text className="mb-1 text-sm font-medium text-foreground">Password</Text>
             <TextInput
               value={password}
               onChangeText={setPassword}
               secureTextEntry
               textContentType="password"
-              placeholder="••••••••"
-              placeholderTextColor="#9CA3AF"
-              className="rounded-lg border border-gray-300 px-4 py-3 text-base text-gray-900"
+              placeholderTextColor={colors.placeholder}
+              className={INPUT_CLASS}
               onSubmitEditing={handleSubmit}
             />
           </View>
 
-          {error ? (
-            <Text className="mb-2 text-sm text-red-600">{error}</Text>
-          ) : null}
-
-          <Pressable
+          <Button
+            label="Sign in"
             onPress={handleSubmit}
             disabled={!canSubmit}
-            className={`mt-4 items-center rounded-lg py-3 ${
-              canSubmit ? "bg-blue-500" : "bg-blue-300"
-            }`}
-          >
-            {submitting ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text className="text-base font-semibold text-white">
-                Log in
-              </Text>
-            )}
-          </Pressable>
+            loading={submitting}
+          />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaViewWrapper>

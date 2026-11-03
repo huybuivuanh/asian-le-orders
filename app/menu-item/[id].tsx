@@ -10,6 +10,7 @@ import {
 } from "@/services/menuData";
 import { buildMenuItemViewModel, selectionRuleLabel } from "@/utils/menuViewModel";
 import { formatPausedUntil } from "@/utils/storeSettingsHelpers";
+import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -81,7 +82,6 @@ export default function MenuItemDetailScreen() {
 
   return (
     <SafeAreaViewWrapper
-      backgroundColor="#F3F4F6"
       includeTopInset={false}
       includeBottomInset={false}
     >
@@ -90,13 +90,15 @@ export default function MenuItemDetailScreen() {
           title: item?.name ?? "Item",
           headerTitleAlign: "center",
           headerBackButtonDisplayMode: "minimal",
+          headerTintColor: colors.foreground,
+          headerShadowVisible: false,
           headerLeft: () => (
             <TouchableOpacity
               onPress={() => router.back()}
               hitSlop={12}
               className="pr-2"
             >
-              <Ionicons name="chevron-back" size={24} color="#007AFF" />
+              <Ionicons name="chevron-back" size={24} color={colors.foreground} />
             </TouchableOpacity>
           ),
         }}
@@ -104,22 +106,22 @@ export default function MenuItemDetailScreen() {
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator />
+          <ActivityIndicator color={colors.foreground} />
         </View>
       ) : !item || !viewModel ? (
         <View className="flex-1 items-center justify-center">
-          <Text className="text-base text-gray-500">Item not found</Text>
+          <Text className="text-base text-foreground/60">Item not found</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={{ padding: 16 }}>
-          <View className="bg-white rounded-2xl px-4">
+          <View className="rounded-xl border border-foreground/10 bg-white px-4">
             <SoldOutToggleRow
               label={item.name}
               isSoldOut={viewModel.availability.state === "sold-out"}
               onPress={() => setSoldOutTarget({ kind: "item" })}
             />
           </View>
-          <Text className="text-sm text-gray-400 mt-3 px-1">
+          <Text className="mt-2 px-1 text-sm text-foreground/60">
             ${item.price.toFixed(2)} · {item.kitchenType}
             {viewModel.availability.state === "sold-out"
               ? ` · Sold out ${formatPausedUntil(viewModel.availability.until)}`
@@ -128,12 +130,12 @@ export default function MenuItemDetailScreen() {
 
           {viewModel.optionGroups.map((group) => (
             <View key={group.group.id} className="mt-6">
-              <View className="bg-white rounded-2xl px-4">
-                <View className="flex-row items-center justify-between py-4 border-b border-gray-100">
-                  <Text className="text-lg font-bold text-gray-900">
+              <View className="rounded-xl border border-foreground/10 bg-white px-4">
+                <View className="flex-row items-center justify-between border-b border-foreground/10 py-4">
+                  <Text className="text-base font-semibold text-foreground">
                     {group.group.name}
                   </Text>
-                  <Text className="text-sm text-gray-400">
+                  <Text className="text-sm text-foreground/60">
                     {selectionRuleLabel(group.group)}
                   </Text>
                 </View>
@@ -142,7 +144,7 @@ export default function MenuItemDetailScreen() {
                     key={option.id}
                     className={
                       index < group.options.length - 1
-                        ? "border-b border-gray-100"
+                        ? "border-b border-foreground/10"
                         : ""
                     }
                   >

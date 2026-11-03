@@ -3,14 +3,10 @@ import DateTimePicker, {
   DateTimePickerAndroid,
 } from "@react-native-community/datetimepicker";
 import { createElement, useState } from "react";
-import {
-  Modal,
-  Platform,
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Platform, Text, View } from "react-native";
+import { colors } from "@/theme/colors";
+import Button from "./ui/Button";
+import ModalCard from "./ui/ModalCard";
 
 const HOUR_MS = 60 * 60 * 1000;
 const QUICK_PAUSES = [
@@ -92,132 +88,84 @@ export default function PauseOrderingModal({
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onCancel}
-    >
-      <Pressable
-        className="flex-1 items-center justify-center bg-black/60 px-6"
-        onPress={onCancel}
-      >
-        <Pressable
-          className="w-full max-w-sm rounded-xl bg-white p-5"
-          onPress={() => {}}
-        >
-          <Text className="text-base font-semibold text-gray-800 text-center mb-1">
-            {title}
-          </Text>
-          <Text className="text-xs text-gray-400 text-center mb-4">
-            {subtitle}
-          </Text>
+    <ModalCard visible={visible} onClose={onCancel} title={title} message={subtitle}>
+      {isActive && <Button label={resumeLabel} onPress={() => onSubmit(null)} className="mb-5" />}
 
-          {isActive && (
-            <TouchableOpacity
-              className="py-3 rounded-md items-center bg-emerald-500 mb-4"
-              onPress={() => onSubmit(null)}
-            >
-              <Text className="font-semibold text-white">{resumeLabel}</Text>
-            </TouchableOpacity>
-          )}
+      <SectionLabel>{quickLabel}</SectionLabel>
+      <View className="mb-2 flex-row gap-2">
+        {QUICK_PAUSES.map((option) => (
+          <Button
+            key={option.label}
+            label={option.label}
+            variant="secondary"
+            size="sm"
+            className="flex-1"
+            onPress={() => onSubmit(new Date(Date.now() + option.hours * HOUR_MS))}
+          />
+        ))}
+      </View>
+      <View className="mb-5 flex-row gap-2">
+        <Button
+          label="Until tomorrow"
+          variant="secondary"
+          size="sm"
+          className="flex-1"
+          onPress={() => onSubmit(untilTomorrow())}
+        />
+        <Button
+          label="Indefinitely"
+          variant="dangerOutline"
+          size="sm"
+          className="flex-1"
+          onPress={() => onSubmit(INDEFINITE_PAUSE)}
+        />
+      </View>
 
-          <Text className="text-xs font-semibold text-gray-500 mb-2">
-            {quickLabel}
-          </Text>
-          <View className="flex-row gap-2 mb-2">
-            {QUICK_PAUSES.map((option) => (
-              <TouchableOpacity
-                key={option.label}
-                className="flex-1 py-2 rounded-md items-center bg-gray-200"
-                onPress={() =>
-                  onSubmit(new Date(Date.now() + option.hours * HOUR_MS))
-                }
-              >
-                <Text className="font-semibold text-gray-700 text-sm">
-                  {option.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <View className="flex-row gap-2 mb-4">
-            <TouchableOpacity
-              className="flex-1 py-3 rounded-md items-center bg-gray-200"
-              onPress={() => onSubmit(untilTomorrow())}
-            >
-              <Text className="font-semibold text-gray-700 text-sm">
-                Until Tomorrow
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="flex-1 py-3 rounded-md items-center bg-red-100"
-              onPress={() => onSubmit(INDEFINITE_PAUSE)}
-            >
-              <Text className="font-semibold text-red-700 text-sm">
-                Indefinitely
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <Text className="text-xs font-semibold text-gray-500 mb-2">
-            Custom
-          </Text>
-
-          {Platform.OS === "web" ? (
-            <View className="mb-4 gap-2">
-              <WebDateTimeInput value={customDate} onChange={setCustomDate} />
-              <TouchableOpacity
-                className="py-2.5 rounded-md items-center bg-emerald-500"
-                onPress={() => onSubmit(customDate)}
-              >
-                <Text className="font-semibold text-white">Confirm</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View className="mb-4">
-              <TouchableOpacity
-                className={`py-2.5 rounded-md items-center bg-gray-200 ${showIosPicker ? "mb-2" : ""}`}
-                onPress={pickCustomDate}
-              >
-                <Text className="font-semibold text-gray-700">
-                  Pick Custom Date & Time…
-                </Text>
-              </TouchableOpacity>
-
-              {Platform.OS === "ios" && showIosPicker && (
-                <View>
-                  <DateTimePicker
-                    value={customDate}
-                    mode="datetime"
-                    display="spinner"
-                    themeVariant="light"
-                    textColor="#374151"
-                    minimumDate={new Date()}
-                    onChange={(_event, date) => {
-                      if (date) setCustomDate(date);
-                    }}
-                  />
-                  <TouchableOpacity
-                    className="py-2.5 rounded-md items-center bg-emerald-500 mt-2"
-                    onPress={() => onSubmit(customDate)}
-                  >
-                    <Text className="font-semibold text-white">Confirm</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+      <SectionLabel>Custom</SectionLabel>
+      {Platform.OS === "web" ? (
+        <View className="mb-6 gap-2">
+          <WebDateTimeInput value={customDate} onChange={setCustomDate} />
+          <Button label="Confirm" size="sm" onPress={() => onSubmit(customDate)} />
+        </View>
+      ) : (
+        <View className="mb-6 gap-2">
+          <Button
+            label="Pick custom date & time…"
+            variant="secondary"
+            size="sm"
+            onPress={pickCustomDate}
+          />
+          {Platform.OS === "ios" && showIosPicker && (
+            <View>
+              <DateTimePicker
+                value={customDate}
+                mode="datetime"
+                display="spinner"
+                themeVariant="light"
+                textColor={colors.foreground}
+                minimumDate={new Date()}
+                onChange={(_event, date) => {
+                  if (date) setCustomDate(date);
+                }}
+              />
+              <Button label="Confirm" size="sm" onPress={() => onSubmit(customDate)} />
             </View>
           )}
+        </View>
+      )}
 
-          <TouchableOpacity
-            className="py-3 rounded-md items-center bg-gray-200"
-            onPress={onCancel}
-          >
-            <Text className="font-semibold text-gray-700">Cancel</Text>
-          </TouchableOpacity>
-        </Pressable>
-      </Pressable>
-    </Modal>
+      <View className="flex-row justify-end">
+        <Button label="Cancel" variant="secondary" size="sm" onPress={onCancel} />
+      </View>
+    </ModalCard>
+  );
+}
+
+function SectionLabel({ children }: { children: string }) {
+  return (
+    <Text className="mb-2 text-xs font-semibold uppercase tracking-wider text-foreground/50">
+      {children}
+    </Text>
   );
 }
 
@@ -248,8 +196,9 @@ function WebDateTimeInput({
     style: {
       fontSize: 14,
       padding: 8,
-      borderRadius: 6,
-      border: "1px solid #d1d5db",
+      borderRadius: 8,
+      border: "1px solid rgba(23, 23, 23, 0.2)",
+      color: colors.foreground,
       width: "100%",
     },
   });

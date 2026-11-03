@@ -1,10 +1,11 @@
 import ConfirmModal from "@/components/ConfirmModal";
 import RewardsDeviceCard from "@/components/RewardsDeviceCard";
 import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 import { useAuth } from "@/contexts/AuthContext";
-import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
@@ -14,42 +15,41 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaViewWrapper includeBottomInset={false}>
-      <View className="px-4 pt-6 gap-6">
-        <Text className="text-2xl font-bold text-gray-900">Settings</Text>
+      <ScrollView contentContainerClassName="w-full max-w-2xl self-center gap-4 px-4 py-6">
+        <Text className="text-2xl font-semibold tracking-tight text-foreground">
+          Settings
+        </Text>
 
-        <View className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm shadow-black/5">
-          <Text className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">
-            Account
-          </Text>
+        <Card title="Account">
           <View className="flex-row items-center gap-3">
-            <View className="w-12 h-12 rounded-full bg-sky-100 items-center justify-center">
-              <Text className="text-lg font-bold text-sky-700">
-                {initial}
-              </Text>
+            <View className="h-12 w-12 items-center justify-center rounded-full bg-ink">
+              <Text className="text-lg font-bold text-gold">{initial}</Text>
             </View>
             <View className="flex-1">
-              <Text className="text-base font-semibold text-gray-900">
+              <Text className="text-base font-semibold text-foreground">
                 {user?.email ?? "Unknown"}
               </Text>
-              <Text className="text-xs text-gray-400 mt-0.5">Signed in</Text>
+              <Text className="mt-0.5 text-sm text-foreground/60">Signed in</Text>
             </View>
           </View>
-        </View>
+        </Card>
 
         <RewardsDeviceCard />
 
-        <TouchableOpacity
-          className="flex-row items-center justify-center gap-2 py-3.5 rounded-2xl bg-red-50 border border-red-100"
+        <Button
+          label="Sign out"
+          variant="dangerOutline"
           onPress={() => setConfirmVisible(true)}
-        >
-          <Ionicons name="log-out-outline" size={18} color="#b91c1c" />
-          <Text className="font-bold text-red-700">Log Out</Text>
-        </TouchableOpacity>
-      </View>
+        />
+      </ScrollView>
 
       <ConfirmModal
         visible={confirmVisible}
-        message="Log out of this device?"
+        title="Sign out"
+        message="Sign out of this device?"
+        confirmLabel="Sign out"
+        cancelLabel="Cancel"
+        danger
         onConfirm={() => {
           setConfirmVisible(false);
           signOut();

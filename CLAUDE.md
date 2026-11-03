@@ -61,6 +61,8 @@ Using points for money off: the website prices it (`taxBreakDown.discount`, POS 
 
 NativeWind v4 (Tailwind classes via `className`) throughout — no `StyleSheet.create`. `@/*` resolves to `src/*` (see `tsconfig.json`).
 
+The look matches `asian-le-website-admin` so the suite feels like one product: brand tokens `ink`, `ink-raised`, `ink-line`, `on-ink`, `on-ink-muted`, `gold`, `foreground` (same names as the website/admin Tailwind themes) are defined in `src/theme/colors.js` and registered in `tailwind.config.js`. Use the classes (`bg-ink`, `text-gold`, `text-foreground/60`, `border-foreground/10`) and use `colors.*` only where a class can't go (icon/Switch/placeholder colors, navigation options). Shared pieces in `src/components/ui/`: `Button` (primary = near-black, secondary = outlined, danger/dangerOutline = red-600, ghost), `Card` (white, rounded-xl, light border, like the admin's settings cards), `ModalCard` (the admin's AppModal dialog), `Wordmark` ("ASIAN [logo] LE ORDERS", `assets/logo.png` from the admin). The web header is dark ink with gold active tabs, like the admin navbar. `OrderCard`'s status colors and action buttons are deliberately left as they are (they mirror the POS).
+
 ### Sibling repos
 
 This project is one of several sharing the same Firebase project: a customer-facing ordering website, a website admin, and POS apps (dine-in/takeout). When matching UI or data conventions (badge layouts, button rows, Firestore doc paths), check those sibling repos rather than inventing a new convention.

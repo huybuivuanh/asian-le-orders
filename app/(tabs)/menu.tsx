@@ -8,6 +8,7 @@ import {
   type MenuItemViewModel,
 } from "@/utils/menuViewModel";
 import { Ionicons } from "@expo/vector-icons";
+import { colors } from "@/theme/colors";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -100,44 +101,44 @@ export default function MenuScreen() {
   }, [categories, items, optionGroups, options, search, showDisabledOnly, now]);
 
   return (
-    <SafeAreaViewWrapper backgroundColor="#F3F4F6" includeBottomInset={false}>
+    <SafeAreaViewWrapper includeBottomInset={false}>
       <View className="px-4 pt-6 pb-3">
-        <Text className="text-2xl font-bold text-gray-900">Menu</Text>
+        <Text className="text-2xl font-semibold tracking-tight text-foreground">Menu</Text>
       </View>
 
       <View className="flex-row items-center gap-2 px-4 pb-3">
-        <View className="flex-1 flex-row items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5">
-          <Ionicons name="search" size={18} color="#9ca3af" />
+        <View className="flex-1 flex-row items-center gap-2 rounded-lg border border-foreground/15 bg-white px-3 py-2.5">
+          <Ionicons name="search" size={18} color={colors.placeholder} />
           <TextInput
-            className="flex-1 text-base text-gray-900 focus:outline-none"
+            className="flex-1 text-base text-foreground focus:outline-none"
             placeholder="Search items"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.placeholder}
             value={search}
             onChangeText={setSearch}
             returnKeyType="search"
           />
           {search.length > 0 && (
             <TouchableOpacity onPress={() => setSearch("")}>
-              <Ionicons name="close-circle" size={18} color="#9ca3af" />
+              <Ionicons name="close-circle" size={18} color={colors.placeholder} />
             </TouchableOpacity>
           )}
         </View>
         <TouchableOpacity
-          className={`flex-row items-center gap-1.5 rounded-xl border px-3 py-2.5 ${
+          className={`flex-row items-center gap-1.5 rounded-lg border px-3 py-2.5 ${
             showDisabledOnly
-              ? "border-red-500 bg-red-500"
-              : "border-gray-200 bg-white"
+              ? "border-foreground bg-foreground"
+              : "border-foreground/15 bg-white"
           }`}
           onPress={() => setShowDisabledOnly((prev) => !prev)}
         >
           <Ionicons
             name="funnel"
             size={16}
-            color={showDisabledOnly ? "#ffffff" : "#6b7280"}
+            color={showDisabledOnly ? colors.white : colors.muted}
           />
           <Text
-            className={`text-sm font-semibold ${
-              showDisabledOnly ? "text-white" : "text-gray-500"
+            className={`text-sm font-medium ${
+              showDisabledOnly ? "text-white" : "text-foreground/70"
             }`}
           >
             Disabled Items
@@ -147,11 +148,11 @@ export default function MenuScreen() {
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator />
+          <ActivityIndicator color={colors.foreground} />
         </View>
       ) : sections.length === 0 ? (
         <View className="flex-1 items-center justify-center">
-          <Text className="text-base text-gray-500">
+          <Text className="text-base text-foreground/60">
             {showDisabledOnly ? "No disabled items" : "No matching items"}
           </Text>
         </View>
@@ -162,8 +163,8 @@ export default function MenuScreen() {
           contentContainerStyle={{ padding: 16, paddingTop: 4, paddingBottom: 32 }}
           stickySectionHeadersEnabled={false}
           renderSectionHeader={({ section }) => (
-            <View className="mt-4 rounded-t-2xl border-b border-gray-100 bg-white px-4 pt-4 pb-3">
-              <Text className="text-lg font-bold text-gray-900">
+            <View className="mt-4 rounded-t-xl border border-foreground/10 bg-white px-4 pt-4 pb-3">
+              <Text className="text-base font-semibold text-foreground">
                 {section.title}
               </Text>
             </View>
@@ -180,7 +181,9 @@ export default function MenuScreen() {
             );
             return (
               <View
-                className={`bg-white px-4 ${isLast ? "rounded-b-2xl" : "border-b border-gray-100"}`}
+                className={`border-x border-t border-foreground/10 bg-white px-4 ${
+                  isLast ? "rounded-b-xl border-b" : ""
+                }`}
               >
                 <TouchableOpacity
                   className="flex-row items-center justify-between py-4"
@@ -193,17 +196,17 @@ export default function MenuScreen() {
                 >
                   <View className="flex-1 flex-row items-center gap-2">
                     {isSoldOut && (
-                      <View className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                      <View className="h-1.5 w-1.5 rounded-full bg-red-600" />
                     )}
                     <View className="flex-1">
                       <Text
-                        className={`text-base ${isSoldOut ? "text-gray-400 line-through" : "text-gray-900"}`}
+                        className={`text-base ${isSoldOut ? "text-foreground/40 line-through" : "text-foreground"}`}
                         numberOfLines={1}
                       >
                         {vm.item.name}
                       </Text>
                       {!isSoldOut && disabledOptionCount > 0 && (
-                        <Text className="text-xs text-red-500 mt-0.5">
+                        <Text className="mt-0.5 text-xs text-red-600">
                           {disabledOptionCount}{" "}
                           {disabledOptionCount === 1 ? "option" : "options"} sold
                           out
@@ -211,7 +214,7 @@ export default function MenuScreen() {
                       )}
                     </View>
                   </View>
-                  <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
+                  <Ionicons name="chevron-forward" size={18} color={colors.placeholder} />
                 </TouchableOpacity>
               </View>
             );

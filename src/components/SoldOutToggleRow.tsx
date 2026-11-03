@@ -1,3 +1,4 @@
+import { colors } from "@/theme/colors";
 import { Switch, Text, TouchableOpacity, View } from "react-native";
 
 type SoldOutToggleRowProps = {
@@ -18,7 +19,7 @@ export default function SoldOutToggleRow({
       activeOpacity={0.6}
     >
       <Text
-        className={`flex-1 mr-3 text-base ${isSoldOut ? "text-gray-400 line-through" : "text-gray-900"}`}
+        className={`mr-3 flex-1 text-base ${isSoldOut ? "text-foreground/40 line-through" : "text-foreground"}`}
         numberOfLines={2}
       >
         {label}
@@ -28,9 +29,9 @@ export default function SoldOutToggleRow({
       <View pointerEvents="none">
         <Switch
           value={!isSoldOut}
-          trackColor={{ false: "#e5e7eb", true: "#10b981" }}
-          thumbColor="#ffffff"
-          ios_backgroundColor="#e5e7eb"
+          trackColor={{ false: colors.off, true: colors.on }}
+          thumbColor={colors.white}
+          ios_backgroundColor={colors.off}
         />
       </View>
     </TouchableOpacity>

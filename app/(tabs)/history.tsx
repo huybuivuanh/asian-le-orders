@@ -37,7 +37,7 @@ export default function OrderHistoryScreen() {
         className="items-center justify-center"
         includeBottomInset={false}
       >
-        <Text className="text-base text-gray-500">No order history</Text>
+        <Text className="text-base text-foreground/60">No order history</Text>
       </SafeAreaViewWrapper>
     );
   }

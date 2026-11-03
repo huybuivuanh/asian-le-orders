@@ -1,4 +1,6 @@
-import { Linking, Text, TouchableOpacity, View } from "react-native";
+import { Linking, Text, View } from "react-native";
+import Button from "./ui/Button";
+import Wordmark from "./ui/Wordmark";
 
 export default function ForceUpdateScreen({
   updateUrl,
@@ -6,24 +8,23 @@ export default function ForceUpdateScreen({
   updateUrl?: string;
 }) {
   return (
-    <View className="flex-1 items-center justify-center bg-gray-100 px-8">
-      <Text className="text-xl font-bold text-gray-900 mb-2 text-center">
-        Update Required
+    <View className="flex-1 items-center justify-center bg-white px-8">
+      <View className="mb-8">
+        <Wordmark tone="light" size="lg" />
+      </View>
+      <Text className="mb-2 text-center text-xl font-semibold text-foreground">
+        Update required
       </Text>
-      <Text className="text-base text-gray-600 mb-6 text-center">
+      <Text className="mb-6 text-center text-base text-foreground/60">
         A new version of this app is required to continue. Please update to
         keep using it.
       </Text>
       {updateUrl && (
-        <TouchableOpacity
+        <Button
+          label="Update now"
           onPress={() => Linking.openURL(updateUrl)}
-          activeOpacity={0.8}
-          className="bg-blue-600 px-8 py-4 rounded-lg"
-        >
-          <Text className="text-white font-semibold text-base">
-            Update Now
-          </Text>
-        </TouchableOpacity>
+          className="px-8"
+        />
       )}
     </View>
   );

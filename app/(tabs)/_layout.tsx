@@ -2,6 +2,7 @@ import ForceUpdateScreen from "@/components/ForceUpdateScreen";
 import { useForceUpdate } from "@/hooks/useForceUpdate";
 import { TABS } from "@/navigation/tabs";
 import { WebTabBar } from "@/navigation/WebTabBar";
+import { colors } from "@/theme/colors";
 import { Tabs } from "expo-router";
 import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { Platform } from "react-native";
@@ -19,7 +20,7 @@ export default function TabLayout() {
 // iOS / Android: real native tab bar.
 function AppTabs() {
   return (
-    <NativeTabs>
+    <NativeTabs tintColor={colors.foreground}>
       {TABS.map((tab) => (
         <NativeTabs.Trigger key={tab.name} name={tab.name}>
           <NativeTabs.Trigger.Label>{tab.label}</NativeTabs.Trigger.Label>
