@@ -9,6 +9,10 @@ module.exports = {
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
   presets: [require("nativewind/preset")],
+  // "class" instead of the default "media": the app is light-only (no dark:
+  // classes), and with "media" react-native-css-interop throws "Cannot manually
+  // set color scheme" on web when the stylesheet loads after the JS.
+  darkMode: "class",
   theme: {
     extend: {
       // Same names as the website / website admin Tailwind themes.

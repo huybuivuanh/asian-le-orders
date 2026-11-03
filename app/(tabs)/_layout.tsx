@@ -17,10 +17,17 @@ export default function TabLayout() {
   return Platform.OS === "web" ? <WebTabs /> : <AppTabs />;
 }
 
-// iOS / Android: real native tab bar.
+// iOS / Android: real native tab bar. Gray background + top border so it
+// doesn't blend into the white screens. On iOS 26+ the system draws the bar
+// (Liquid Glass) and ignores these background props.
 function AppTabs() {
   return (
-    <NativeTabs tintColor={colors.foreground}>
+    <NativeTabs
+      tintColor={colors.foreground}
+      backgroundColor={colors.tabBar}
+      shadowColor={colors.tabBarBorder}
+      disableTransparentOnScrollEdge
+    >
       {TABS.map((tab) => (
         <NativeTabs.Trigger key={tab.name} name={tab.name}>
           <NativeTabs.Trigger.Label>{tab.label}</NativeTabs.Trigger.Label>

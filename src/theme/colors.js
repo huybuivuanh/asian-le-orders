@@ -18,6 +18,10 @@ const colors = {
   muted: "#737373", // foreground at ~60%
   placeholder: "#a3a3a3",
   white: "#ffffff",
+  // Native bottom tab bar: a light gray so it stands apart from the white
+  // screens, plus a hairline top border (iOS shadowColor).
+  tabBar: "#f5f5f4", // stone-100
+  tabBarBorder: "rgba(23, 23, 23, 0.12)",
   // Switch "on" (green-500, same as the admin's toggles)
   on: "#22c55e",
   off: "#e5e5e5",

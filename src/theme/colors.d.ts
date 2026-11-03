@@ -9,6 +9,8 @@ export declare const colors: {
   muted: string;
   placeholder: string;
   white: string;
+  tabBar: string;
+  tabBarBorder: string;
   on: string;
   off: string;
 };
