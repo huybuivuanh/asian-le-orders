@@ -1,61 +1,20 @@
-// Asian Le Rewards: the device's rewards login, and settling points for online orders.
+// Asian Le Rewards: settling points for online orders.
 // Online orders are linked to a member at checkout by the website (`order.loyalty`). If
 // the customer used points for money off, the website only priced the discount
 // (`loyalty.pointsToRedeem`); the points are taken here on Complete (`redeemPoints`),
 // then the order's points are earned on the discounted subtotal (`earnPoints`) — the same
 // rewards functions the POS uses. Each call is tied to the order id, so retrying never
 // takes or gives points twice.
-import { db } from "@/lib/firebase";
+import { bizDoc } from "@/lib/business";
+import app from "@/lib/firebase";
 import { calculateTaxBreakdown } from "@/utils/orderPricing";
-import { rewardsAuth, rewardsConfigured, rewardsFunctions } from "@/lib/rewardsFirebase";
 import { FirebaseError } from "firebase/app";
-import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut,
-  type Unsubscribe,
-} from "firebase/auth";
-import { deleteField, doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { httpsCallable } from "firebase/functions";
+import { deleteField, serverTimestamp, updateDoc } from "firebase/firestore";
+import { getFunctions, httpsCallable } from "firebase/functions";
 
-export type RewardsDeviceAuth = {
-  configured: boolean;
-  /** False until the remembered login has been restored. */
-  ready: boolean;
-  email: string | null;
-  /** True when the signed-in account has the `role: "pos"` claim. */
-  isPosAccount: boolean;
-};
-
-export function subscribeToRewardsAuth(
-  onData: (state: RewardsDeviceAuth) => void,
-): Unsubscribe {
-  if (!rewardsConfigured || !rewardsAuth) {
-    onData({ configured: false, ready: true, email: null, isPosAccount: false });
-    return () => {};
-  }
-  return onAuthStateChanged(rewardsAuth, async (user) => {
-    let isPosAccount = false;
-    if (user) {
-      try {
-        isPosAccount = (await user.getIdTokenResult()).claims.role === "pos";
-      } catch {
-        // Offline: keep the login; the functions check the role anyway.
-        isPosAccount = true;
-      }
-    }
-    onData({ configured: true, ready: true, email: user?.email ?? null, isPosAccount });
-  });
-}
-
-export async function signInRewardsDevice(email: string, password: string) {
-  if (!rewardsAuth) throw new Error("Rewards isn't set up in this build.");
-  await signInWithEmailAndPassword(rewardsAuth, email.trim(), password);
-}
-
-export async function signOutRewardsDevice() {
-  if (rewardsAuth) await signOut(rewardsAuth);
-}
+// The rewards functions run in the same project and are called with the staff login.
+// They take the business from the caller's `businessId` claim.
+const rewardsFunctions = getFunctions(app);
 
 /** Staff-facing message for a failed rewards sign-in or call. */
 export function rewardsErrorMessage(err: unknown): string {
@@ -72,9 +31,9 @@ export function rewardsErrorMessage(err: unknown): string {
       case "functions/deadline-exceeded":
         return "No connection to Rewards. Check the internet and try again.";
       case "functions/unauthenticated":
-        return "This device isn't signed in to Rewards. Sign in from Settings → Rewards.";
+        return "You're signed out. Sign in again to use Rewards.";
       case "functions/permission-denied":
-        return "This Rewards account doesn't have POS access.";
+        return "This account can't use Rewards. Ask an admin.";
       case "functions/not-found":
         return "This rewards member no longer exists.";
       case "functions/failed-precondition":
@@ -138,7 +97,6 @@ export async function redeemOrderPoints(order: Order): Promise<void> {
   const memberId = order.loyalty?.memberId;
   const points = order.loyalty?.pointsToRedeem ?? 0;
   if (!memberId) throw new Error("This order isn't linked to a rewards member.");
-  if (!rewardsFunctions) throw new Error("Rewards isn't set up in this build.");
   const steps = points / POINTS_PER_REDEEM_STEP;
   if (!Number.isInteger(steps) || steps < 1) {
     throw new Error(`This order has an invalid rewards amount (${points} points).`);
@@ -158,7 +116,7 @@ export async function redeemOrderPoints(order: Order): Promise<void> {
     throw new Error(rewardsErrorMessage(err));
   }
 
-  await updateDoc(doc(db, "orders", order.id), {
+  await updateDoc(bizDoc("orders", order.id), {
     "loyalty.pointsRedeemed": result.pointsRedeemed,
     "loyalty.redeemedAmount": result.discount,
     "loyalty.redeemedAt": serverTimestamp(),
@@ -180,7 +138,7 @@ export async function settleOrderRewards(order: Order): Promise<void> {
  */
 export async function removeRewardsDiscount(order: Order): Promise<Order> {
   const taxBreakDown = calculateTaxBreakdown(order.taxBreakDown.subTotal);
-  await updateDoc(doc(db, "orders", order.id), {
+  await updateDoc(bizDoc("orders", order.id), {
     taxBreakDown,
     "loyalty.pointsToRedeem": deleteField(),
   });
@@ -196,7 +154,7 @@ export async function removeRewardsDiscount(order: Order): Promise<Order> {
  * earlier): stop trying to take the points, so the earned points can still be collected.
  */
 export async function waiveRedeem(order: Order): Promise<Order> {
-  await updateDoc(doc(db, "orders", order.id), { "loyalty.redeemWaived": true });
+  await updateDoc(bizDoc("orders", order.id), { "loyalty.redeemWaived": true });
   return {
     ...order,
     loyalty: order.loyalty ? { ...order.loyalty, redeemWaived: true } : undefined,
@@ -213,7 +171,6 @@ export type CollectPointsResult = { pointsEarned: number; bonusPoints: number; b
 export async function collectOrderPoints(order: Order): Promise<CollectPointsResult> {
   const memberId = order.loyalty?.memberId;
   if (!memberId) throw new Error("This order isn't linked to a rewards member.");
-  if (!rewardsFunctions) throw new Error("Rewards isn't set up in this build.");
 
   let result: CollectPointsResult;
   try {
@@ -236,7 +193,7 @@ export async function collectOrderPoints(order: Order): Promise<CollectPointsRes
 
   // Same fields as the POS's order.loyalty. If this write fails, collecting again is
   // harmless: earnPoints returns the first result.
-  await updateDoc(doc(db, "orders", order.id), {
+  await updateDoc(bizDoc("orders", order.id), {
     "loyalty.pointsEarned": result.pointsEarned + result.bonusPoints,
     "loyalty.collectedAt": serverTimestamp(),
   });
@@ -252,7 +209,6 @@ export async function collectOrderPoints(order: Order): Promise<CollectPointsRes
 export async function reverseOrderPoints(order: Order): Promise<number> {
   const memberId = order.loyalty?.memberId;
   if (!memberId) throw new Error("This order isn't linked to a rewards member.");
-  if (!rewardsFunctions) throw new Error("Rewards isn't set up in this build.");
 
   let pointsChanged: number;
   try {
@@ -265,7 +221,7 @@ export async function reverseOrderPoints(order: Order): Promise<number> {
     throw new Error(rewardsErrorMessage(err));
   }
 
-  await updateDoc(doc(db, "orders", order.id), {
+  await updateDoc(bizDoc("orders", order.id), {
     "loyalty.reversedAt": serverTimestamp(),
     "loyalty.pointsReversed": pointsChanged,
     "loyalty.reversePending": false,
@@ -275,5 +231,5 @@ export async function reverseOrderPoints(order: Order): Promise<number> {
 
 /** Staff cancelled anyway after removing the points failed — flag it for a retry. */
 export async function markReversePending(order: Order): Promise<void> {
-  await updateDoc(doc(db, "orders", order.id), { "loyalty.reversePending": true });
+  await updateDoc(bizDoc("orders", order.id), { "loyalty.reversePending": true });
 }

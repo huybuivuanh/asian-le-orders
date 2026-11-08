@@ -1,8 +1,8 @@
-import { db } from "@/lib/firebase";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { bizDoc } from "@/lib/business";
+import { getDoc, setDoc, updateDoc } from "firebase/firestore";
 
 export async function submitOrderToPrintQueue(order: Order) {
-  const printQueueRef = doc(db, "printQueue", order.id);
+  const printQueueRef = bizDoc("onlinePrintQueue", order.id);
   const existingSnap = await getDoc(printQueueRef);
 
   if (existingSnap.exists()) {

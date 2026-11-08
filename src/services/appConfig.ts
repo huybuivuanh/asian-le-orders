@@ -12,8 +12,8 @@ export type AppVersionConfig = {
   androidUpdateUrl?: string;
 };
 
-// Same doc path as AsianLePOS (`appConfig/version`), but in this app's own Firebase project.
-const APP_VERSION_DOC = doc(db, "appConfig", "version");
+// Top level, shared by every business; each app has its own doc (POS: posVersion).
+const APP_VERSION_DOC = doc(db, "appConfig", "ordersVersion");
 
 export function subscribeToAppVersionConfig(
   onData: (config: AppVersionConfig | null) => void,

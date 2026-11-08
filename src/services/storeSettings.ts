@@ -1,16 +1,16 @@
-import { db } from "@/lib/firebase";
+import { bizDoc } from "@/lib/business";
 import { INDEFINITE_PAUSE } from "@/utils/storeSettingsHelpers";
 import {
   Timestamp,
   type DocumentData,
   type FirestoreError,
   type Unsubscribe,
-  doc,
   onSnapshot,
   setDoc,
 } from "firebase/firestore";
 
-const STORE_SETTINGS_DOC = doc(db, "settings", "store");
+// A function, not a constant: the business is only known after sign-in.
+const storeSettingsDoc = () => bizDoc("settings", "store");
 
 const DEFAULT_DAY_HOURS: DayHours = {
   isOpen: false,
@@ -49,7 +49,7 @@ export function subscribeToStoreSettings(
   onError: (error: FirestoreError) => void,
 ): Unsubscribe {
   return onSnapshot(
-    STORE_SETTINGS_DOC,
+    storeSettingsDoc(),
     (snapshot) => {
       onData(
         snapshot.exists()
@@ -63,12 +63,12 @@ export function subscribeToStoreSettings(
 
 export async function updateStorePausedUntil(pausedUntil: Date | null) {
   await setDoc(
-    STORE_SETTINGS_DOC,
+    storeSettingsDoc(),
     { pausedUntil: pausedUntil ? Timestamp.fromDate(pausedUntil) : null },
     { merge: true },
   );
 }
 
 export async function updateStoreWaitTime(waitTime: number) {
-  await setDoc(STORE_SETTINGS_DOC, { waitTime }, { merge: true });
+  await setDoc(storeSettingsDoc(), { waitTime }, { merge: true });
 }

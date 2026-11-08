@@ -1,5 +1,4 @@
 import ConfirmModal from "@/components/ConfirmModal";
-import RewardsDeviceCard from "@/components/RewardsDeviceCard";
 import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -33,8 +32,6 @@ export default function SettingsScreen() {
             </View>
           </View>
         </Card>
-
-        <RewardsDeviceCard />
 
         <Button
           label="Sign out"

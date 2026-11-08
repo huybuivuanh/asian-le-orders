@@ -1,4 +1,4 @@
-import { db } from "@/lib/firebase";
+import { bizCol, bizDoc } from "@/lib/business";
 import { KitchenType } from "@/types/enum";
 import { sortAlphabetically } from "@/utils/sort";
 import {
@@ -6,8 +6,6 @@ import {
   type FirestoreError,
   type Unsubscribe,
   Timestamp,
-  collection,
-  doc,
   onSnapshot,
   orderBy,
   query,
@@ -170,7 +168,7 @@ export function subscribeToCategories(
   onData: (categories: FoodCategory[]) => void,
   onError: (error: FirestoreError) => void,
 ): Unsubscribe {
-  const q = query(collection(db, "categories"), orderBy("order"));
+  const q = query(bizCol("webCategories"), orderBy("order"));
   return onSnapshot(
     q,
     (snapshot) => {
@@ -187,7 +185,7 @@ export function subscribeToMenuItems(
   onError: (error: FirestoreError) => void,
 ): Unsubscribe {
   return onSnapshot(
-    collection(db, "menuItems"),
+    bizCol("webMenuItems"),
     (snapshot) => {
       const items = snapshot.docs.map((docSnap) =>
         mapMenuItemDoc(docSnap.id, docSnap.data()),
@@ -203,7 +201,7 @@ export function subscribeToOptionGroups(
   onError: (error: FirestoreError) => void,
 ): Unsubscribe {
   return onSnapshot(
-    collection(db, "optionGroups"),
+    bizCol("webOptionGroups"),
     (snapshot) => {
       onData(
         snapshot.docs.map((docSnap) => mapOptionGroupDoc(docSnap.id, docSnap.data())),
@@ -218,7 +216,7 @@ export function subscribeToItemOptions(
   onError: (error: FirestoreError) => void,
 ): Unsubscribe {
   return onSnapshot(
-    collection(db, "options"),
+    bizCol("webOptions"),
     (snapshot) => {
       onData(
         snapshot.docs.map((docSnap) => mapItemOptionDoc(docSnap.id, docSnap.data())),
@@ -232,7 +230,7 @@ export async function updateMenuItemSoldOutUntil(
   itemId: string,
   soldOutUntil: Date | null,
 ) {
-  await updateDoc(doc(db, "menuItems", itemId), {
+  await updateDoc(bizDoc("webMenuItems", itemId), {
     soldOutUntil: soldOutUntil ? Timestamp.fromDate(soldOutUntil) : null,
   });
 }
@@ -241,7 +239,7 @@ export async function updateItemOptionSoldOutUntil(
   optionId: string,
   soldOutUntil: Date | null,
 ) {
-  await updateDoc(doc(db, "options", optionId), {
+  await updateDoc(bizDoc("webOptions", optionId), {
     soldOutUntil: soldOutUntil ? Timestamp.fromDate(soldOutUntil) : null,
   });
 }

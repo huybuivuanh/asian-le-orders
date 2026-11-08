@@ -11,7 +11,7 @@ import {
 import SafeAreaViewWrapper from "@/components/SafeAreaViewWrapper";
 import Button from "@/components/ui/Button";
 import Wordmark from "@/components/ui/Wordmark";
-import { useAuth } from "@/contexts/AuthContext";
+import { AccessError, useAuth } from "@/contexts/AuthContext";
 import { colors } from "@/theme/colors";
 
 // Same input style as the website admin's login.
@@ -19,6 +19,8 @@ const INPUT_CLASS =
   "rounded-lg border border-foreground/20 bg-white px-3 py-2.5 text-base text-foreground";
 
 function getErrorMessage(error: unknown): string {
+  // Signed in, but the account isn't staff/admin of a business.
+  if (error instanceof AccessError) return error.message;
   if (error instanceof FirebaseError) {
     switch (error.code) {
       case "auth/invalid-email":

@@ -6,6 +6,7 @@ import {
 } from "firebase/auth";
 import { createContext, useContext, useEffect, useState } from "react";
 
+import { checkAccessAndSetBusiness } from "@/lib/business";
 import { auth } from "@/lib/firebase";
 
 type AuthContextValue = {
@@ -15,6 +16,9 @@ type AuthContextValue = {
   signOut: () => Promise<void>;
 };
 
+/** Thrown by signIn when the account isn't staff/admin of a business. */
+export class AccessError extends Error {}
+
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -22,7 +26,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (nextUser) => {
+    // Show the user only once their claims allow this app and the business is set.
+    // The access check is async; only the latest auth event counts.
+    let latest = 0;
+    const unsubscribe = onAuthStateChanged(auth, async (nextUser) => {
+      const run = ++latest;
+      if (!nextUser) {
+        setUser(null);
+        setInitializing(false);
+        return;
+      }
+      const access = await checkAccessAndSetBusiness(nextUser);
+      if (run !== latest) return;
+      if (!access.ok) {
+        await firebaseSignOut(auth); // fires again with null
+        return;
+      }
       setUser(nextUser);
       setInitializing(false);
     });
@@ -33,7 +52,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     initializing,
     signIn: async (email, password) => {
-      await signInWithEmailAndPassword(auth, email, password);
+      const { user: signedIn } = await signInWithEmailAndPassword(auth, email, password);
+      const access = await checkAccessAndSetBusiness(signedIn);
+      if (!access.ok) {
+        await firebaseSignOut(auth);
+        throw new AccessError(access.message);
+      }
     },
     signOut: async () => {
       await firebaseSignOut(auth);

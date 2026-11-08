@@ -1,4 +1,4 @@
-import { db } from "@/lib/firebase";
+import { bizCol, bizDoc } from "@/lib/business";
 import { KitchenType, OrderStatus, TakeOutFulfillmentKind } from "@/types/enum";
 import { generateFirestoreId } from "@/utils/firestoreId";
 import { calculateTaxBreakdown } from "@/utils/orderPricing";
@@ -7,8 +7,6 @@ import {
   type FirestoreError,
   type Unsubscribe,
   Timestamp,
-  collection,
-  doc,
   limit,
   onSnapshot,
   orderBy,
@@ -85,7 +83,7 @@ export function subscribeToLiveOrders(
   onError: (error: FirestoreError) => void,
 ): Unsubscribe {
   const q = query(
-    collection(db, "orders"),
+    bizCol("orders"),
     where("status", "in", [
       OrderStatus.New,
       OrderStatus.InProgress,
@@ -111,7 +109,7 @@ export function subscribeToOrderHistory(
   onError: (error: FirestoreError) => void,
 ): Unsubscribe {
   const q = query(
-    collection(db, "orders"),
+    bizCol("orders"),
     orderBy("createdAt", "desc"),
     limit(ORDER_HISTORY_LIMIT),
   );
@@ -135,11 +133,11 @@ export async function acceptOrder(order: Order, readyTimeMinutes?: number) {
     updates["fulfillment.readyTimeMinutes"] = readyTimeMinutes;
   }
 
-  await updateDoc(doc(db, "orders", order.id), updates);
+  await updateDoc(bizDoc("orders", order.id), updates);
 }
 
 export async function updateOrderStatus(orderId: string, status: OrderStatus) {
-  await updateDoc(doc(db, "orders", orderId), { status });
+  await updateDoc(bizDoc("orders", orderId), { status });
 }
 
 // Lets the restaurant add a line item (e.g. a customer-noted extra) before
@@ -161,5 +159,5 @@ export async function addExtraCharge(order: Order, name: string, price: number) 
     order.taxBreakDown.discount?.discountValue ?? 0,
   );
 
-  await updateDoc(doc(db, "orders", order.id), { orderItems, taxBreakDown });
+  await updateDoc(bizDoc("orders", order.id), { orderItems, taxBreakDown });
 }
