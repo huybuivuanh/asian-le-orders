@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "asianle-orders",
     "public": "dist",
     "ignore": [
       "firebase.json",
