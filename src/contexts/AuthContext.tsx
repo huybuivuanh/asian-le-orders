@@ -16,7 +16,7 @@ type AuthContextValue = {
   signOut: () => Promise<void>;
 };
 
-/** Thrown by signIn when the account isn't staff/admin of a business. */
+/** Thrown by signIn when the account isn't an admin of a business. */
 export class AccessError extends Error {}
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);

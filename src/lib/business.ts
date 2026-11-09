@@ -9,8 +9,6 @@ import { collection, doc } from "firebase/firestore";
 import { db } from "./firebase";
 
 const STORAGE_KEY = "@business";
-// Who can use the Orders app: staff and admins. Customers (rewards accounts) have no role.
-const STAFF_ROLES = ["staff", "admin"];
 
 type SavedBusiness = { uid: string; businessId: string };
 
@@ -27,10 +25,9 @@ export async function checkAccessAndSetBusiness(user: User): Promise<Access> {
     access =
       typeof businessId === "string" &&
       businessId &&
-      typeof claims.role === "string" &&
-      STAFF_ROLES.includes(claims.role)
+      claims.role === "admin" // the Orders app is admin only
         ? { ok: true, businessId }
-        : { ok: false, message: "This account doesn't have Orders app access. Ask an admin to set it up." };
+        : { ok: false, message: "The Orders app is for admins only. Sign in with an admin account." };
   } catch {
     // Offline with an expired token: trust the business saved for this same account.
     const saved = await loadSaved();
