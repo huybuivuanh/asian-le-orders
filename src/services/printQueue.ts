@@ -1,14 +1,11 @@
 import { bizDoc } from "@/lib/business";
-import { getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { setDoc } from "firebase/firestore";
 
+/**
+ * Copies the order as it is now into onlinePrintQueue, replacing any earlier copy, so a
+ * reprint shows later changes (rewards discount removed at pickup, extra charge added).
+ * `printed: false` makes the print server print it.
+ */
 export async function submitOrderToPrintQueue(order: Order) {
-  const printQueueRef = bizDoc("onlinePrintQueue", order.id);
-  const existingSnap = await getDoc(printQueueRef);
-
-  if (existingSnap.exists()) {
-    await updateDoc(printQueueRef, { printed: false });
-    return;
-  }
-
-  await setDoc(printQueueRef, { ...order, printed: false });
+  await setDoc(bizDoc("onlinePrintQueue", order.id), { ...order, printed: false });
 }
