@@ -8,7 +8,7 @@
     "userInterfaceStyle": "light",
     "icon": "./assets/favicon.png",
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "ca.asianle.asianleorders",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
