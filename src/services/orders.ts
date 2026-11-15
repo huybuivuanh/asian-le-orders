@@ -153,11 +153,8 @@ export async function addExtraCharge(order: Order, name: string, price: number) 
   };
   const orderItems = [...order.orderItems, newItem];
   const subTotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  // Keep any rewards-points discount — it's a fixed dollar amount, not a percentage.
-  const taxBreakDown = calculateTaxBreakdown(
-    subTotal,
-    order.taxBreakDown.discount?.discountValue ?? 0,
-  );
+  // Keep any rewards points used — a fixed dollar amount, not a percentage.
+  const taxBreakDown = calculateTaxBreakdown(subTotal, order.taxBreakDown.rewards);
 
   await updateDoc(bizDoc("orders", order.id), { orderItems, taxBreakDown });
 }

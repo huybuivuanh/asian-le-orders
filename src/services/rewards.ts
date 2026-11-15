@@ -83,9 +83,9 @@ export function needsPointsReversed(order: Order): boolean {
   );
 }
 
-/** Pre-tax amount after any discount — what points are earned on (same as the POS). */
+/** Pre-tax amount after any discount and rewards — what points are earned on (same as the POS). */
 export function earnableSubtotal(order: Order): number {
-  return order.taxBreakDown.discount?.taxableSubtotal ?? order.taxBreakDown.subTotal;
+  return order.taxBreakDown.taxableSubtotal;
 }
 
 /**

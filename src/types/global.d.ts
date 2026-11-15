@@ -164,18 +164,27 @@ declare global {
     kitchenType: KitchenType;
   }
 
-  /** Money off before tax (POS shape, so receipts print it). On online orders it comes
-   * from rewards points the customer chose at checkout — see OrderLoyalty.pointsToRedeem. */
+  /** A POS staff discount (POS shape). Online orders don't get one. */
   interface OrderDiscount {
     discountType: DiscountType;
     discountValue: number;
     discountAmount: number;
-    taxableSubtotal: number;
+  }
+
+  /** Rewards points the customer chose at checkout, taken off before tax (POS shape, so
+   * receipts print it) — see OrderLoyalty.pointsToRedeem. */
+  interface OrderRewards {
+    points: number;
+    /** Dollars actually taken off. */
+    amount: number;
   }
 
   interface OrderTaxBreakDown {
     subTotal: number;
     discount?: OrderDiscount;
+    rewards?: OrderRewards;
+    /** subTotal − discount − rewards; what tax and points are calculated on. */
+    taxableSubtotal: number;
     pst: number;
     gst: number;
     total: number;
@@ -192,7 +201,7 @@ declare global {
     memberName: string;
     pointsEarned?: number;
     collectedAt?: Date;
-    // Points the customer chose to use at checkout for taxBreakDown.discount. Not taken
+    // Points the customer chose to use at checkout for taxBreakDown.rewards. Not taken
     // from their balance yet; taking them on Complete sets pointsRedeemed/redeemedAmount.
     pointsToRedeem?: number;
     pointsRedeemed?: number;

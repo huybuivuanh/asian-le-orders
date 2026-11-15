@@ -557,7 +557,6 @@ export default function OrderCard({
               </Text>
             </View>
             {order.taxBreakDown.discount ? (
-              <>
                 <View className="flex-row justify-between mb-1">
                   <Text className="text-base text-gray-600">
                     {order.taxBreakDown.discount.discountType === DiscountType.Percent
@@ -568,13 +567,24 @@ export default function OrderCard({
                     -${order.taxBreakDown.discount.discountAmount.toFixed(2)}
                   </Text>
                 </View>
-                <View className="flex-row justify-between mb-1">
-                  <Text className="text-base text-gray-700">Taxable Subtotal</Text>
-                  <Text className="text-base text-gray-700">
-                    ${order.taxBreakDown.discount.taxableSubtotal.toFixed(2)}
-                  </Text>
-                </View>
-              </>
+            ) : null}
+            {order.taxBreakDown.rewards ? (
+              <View className="flex-row justify-between mb-1">
+                <Text className="text-base text-gray-600">
+                  {`Rewards (${order.taxBreakDown.rewards.points} pts)`}
+                </Text>
+                <Text className="text-base text-gray-700">
+                  -${order.taxBreakDown.rewards.amount.toFixed(2)}
+                </Text>
+              </View>
+            ) : null}
+            {order.taxBreakDown.taxableSubtotal < order.taxBreakDown.subTotal ? (
+              <View className="flex-row justify-between mb-1">
+                <Text className="text-base text-gray-700">Taxable Subtotal</Text>
+                <Text className="text-base text-gray-700">
+                  ${order.taxBreakDown.taxableSubtotal.toFixed(2)}
+                </Text>
+              </View>
             ) : null}
             <View className="flex-row justify-between mb-1">
               <Text className="text-base text-gray-700">PST (6%)</Text>
@@ -692,7 +702,7 @@ export default function OrderCard({
 
       <ConfirmModal
         visible={notEnoughPoints != null}
-        message={`${loyalty?.memberName || "The member"} no longer has the ${loyalty?.pointsToRedeem ?? ""} points used for this order's discount (${notEnoughPoints ?? ""}).\n\nRemove the $${(order.taxBreakDown.discount?.discountAmount ?? 0).toFixed(2)} rewards discount and complete? New total: $${fullPriceTotal.toFixed(2)} — tell the customer before charging. They still earn points on the order.`}
+        message={`${loyalty?.memberName || "The member"} no longer has the ${loyalty?.pointsToRedeem ?? ""} points used for this order's discount (${notEnoughPoints ?? ""}).\n\nRemove the $${(order.taxBreakDown.rewards?.amount ?? 0).toFixed(2)} rewards discount and complete? New total: $${fullPriceTotal.toFixed(2)} — tell the customer before charging. They still earn points on the order.`}
         confirmLabel="Remove discount"
         cancelLabel="Not now"
         onConfirm={() => void handleRemoveDiscountAndComplete()}
